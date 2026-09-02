@@ -4,16 +4,17 @@
 
 ## ✨ 功能特性
 
-- **首页面板**：个人资料卡 + 各功能毛玻璃拼块，一目了然
+- **首页**：个人信息卡 + 音乐模块 + 算法战绩 + 功能面板拼块；底部信息栏（北京时间 / 建站技术栈 logo / 运行时间）
 - **博客**：后台以 Markdown 撰写、实时预览，前台渲染排版（含宽表格横向滚动适配）
-- **说说**：后台发布 / 删除，前台时间线展示
-- **相册**：后台直接上传图片（`/api/upload`），前台瀑布流展示
-- **音乐**：后台上传音频入库；全站迷你播放器（默认「律动条」，点按即播，可展开选歌、拖动进度）
-- **知识树**：以后台维护的树形「技术栈」展示所学技能，前台点击大类展开/收起
-- **算法战绩**：后台填 CF handle 自动拉取 Codeforces Rating/段位，可挂洛谷/牛客主页入口
-- **虚拟宠物**：右下角会写代码的像素小猫，可戳互动
-- **管理后台**：`/admin`，支持文章 / 说说 / 相册 / 音乐 / 技术栈 / 网站设置统一管理，所有删除带二次确认与反馈
-- 站点名称、首页简介(motto) 等均可后台配置；底部展示累计运行时间
+- **说说**：后台发布 / 删除，支持**一次附带多张图片**，前台灯箱放大查看
+- **相册**：后台直接上传图片并**归入自定义分类**，前台可按分类筛选，分类名可随意填
+- **音乐**：后台上传音频入库；首页音乐模块（旋转唱片 + 歌单弹窗）+ 音乐页「音乐馆」沉浸式播放
+- **知识树**：以后台维护的树形「所学技术」展示，前台点击大类展开/收起
+- **算法战绩**：后台填 CF handle 自动拉取 Codeforces Rating/段位（带段位色），可挂洛谷 / 牛客主页入口
+- **关于页**：自我介绍式大卡（头像 + 简介 + Markdown 正文）+ 最近动态，正文后台可编辑
+- **虚拟宠物**：右下角会敲代码的小猫（多排键帽 + 左右手随机敲击，随打字节奏同步）
+- **管理后台**：`/admin` 每次访问需登录，统一管理文章 / 说说 / 相册 / 音乐 / 技术栈 / 网站设置，删除带二次确认与 toast 反馈
+- 站点名称、首页简介(motto)、关于页正文等均可后台配置
 
 ## 🧱 技术栈
 
@@ -29,7 +30,7 @@
 .
 ├── backend/            # Spring Boot API 服务
 │   ├── src/main/java/com/blog
-│   │   ├── config/     # 拦截器 / 静态资源 / 启动器
+│   │   ├── config/     # 拦截器 / 启动器 / 建库迁移 / Jackson
 │   │   ├── controller/ # REST 接口
 │   │   ├── model/      # 实体
 │   │   ├── repository/ # JdbcTemplate 数据访问
@@ -38,10 +39,10 @@
 │       ├── schema.sql               # SQLite 建表
 │       └── application.properties
 └── frontend/           # Vue 3 前端
-    ├── public/         # 静态资源(背景/头像/占位)
+    ├── public/         # 静态资源(背景/头像/技术栈 logo)
     └── src/
         ├── api/        # 请求封装（含 token、上传）
-        ├── components/ # 播放器 / 知识树 / 算法战绩 / 宠物
+        ├── components/ # 音乐模块 / 算法战绩 / 宠物 / 播放器
         ├── composables/# 全局播放器状态
         ├── views/      # 各页面
         └── config.js   # 站点基础配置
@@ -83,15 +84,16 @@ npm run dev
 |------|------|
 | 鉴权 | `POST /api/auth/login`（校验 token） |
 | 文章 | `GET/POST /api/posts` · `GET/DELETE /api/posts/{id}` |
-| 说说 | `GET/POST /api/shuoshuo` · `DELETE /api/shuoshuo/{id}` |
-| 相册 | `GET/POST /api/photos` · `DELETE /api/photos/{id}` |
+| 说说 | `GET/POST /api/shuoshuo`（支持 `images[]`）· `DELETE /api/shuoshuo/{id}` |
+| 相册 | `GET/POST /api/photos`（支持 `category`）· `GET /api/photos/categories` · `DELETE /api/photos/{id}` |
 | 音乐 | `GET/POST /api/music` · `DELETE /api/music/{id}` |
 | 技术栈 | `GET/POST /api/tech` · `DELETE /api/tech/{id}` |
 | 上传 | `POST /api/upload`（`type=music/image`，文件存 `uploads/`） |
-| 站点配置 | `GET /api/site` · `PUT /api/site`（后台可编辑字段） |
+| 站点配置 | `GET /api/site` · `PUT /api/site`（motto / 算法战绩 / 关于页正文等） |
 | 运行时间 | `GET /api/uptime` |
 
 > 除 `GET` 外的写接口均在拦截器中校验请求头 `X-Admin-Token`；上传文件经 `/files/**` 静态访问。
+> 数据库为 SQLite（`data/blog.db`），新增字段由启动时 `SchemaMigrator` 自动迁移，旧库无需手动处理。
 
 ## ☁️ 部署（Ubuntu + Nginx）
 
