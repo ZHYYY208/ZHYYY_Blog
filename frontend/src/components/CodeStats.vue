@@ -1,11 +1,19 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, reactive } from 'vue'
 import { api } from '../api'
 
 const cfg = ref({})
 const cf = ref(null)
 const cfErr = ref(false)
 const loaded = ref(false)
+
+const imgErr = reactive({ cf: false, lg: false, nc: false })
+
+const LOGOS = {
+  cf: 'https://codeforces.com/favicon.ico',
+  lg: 'https://www.luogu.com.cn/favicon.ico',
+  nc: 'https://ac.nowcoder.com/favicon.ico',
+}
 
 const COLORS = {
   newbie: '#808080',
@@ -29,18 +37,18 @@ async function loadCF() {
   try {
     const res = await fetch(`https://codeforces.com/api/user.info?handles=${encodeURIComponent(cfg.value.cfHandle)}`)
     if (!res.ok) throw new Error()
-      const j = await res.json()
-      if (j.status === 'OK') {
-        const u = j.result[0]
-        const has = typeof u.rating === 'number'
-        if (has) {
-          const rank = (u.rank || 'unrated').toLowerCase().replace(/\s/g, '')
-          u.rankColor = COLORS[rank] || '#808080'
-        } else {
-          u.rankColor = '#808080'
-        }
-        cf.value = u
+    const j = await res.json()
+    if (j.status === 'OK') {
+      const u = j.result[0]
+      const has = typeof u.rating === 'number'
+      if (has) {
+        const rank = (u.rank || 'unrated').toLowerCase().replace(/\s/g, '')
+        u.rankColor = COLORS[rank] || '#808080'
+      } else {
+        u.rankColor = '#808080'
       }
+      cf.value = u
+    }
   } catch {
     cfErr.value = true
   }
@@ -72,7 +80,10 @@ function nowcoderId() {
     <div class="grid" v-if="loaded">
       <!-- Codeforces -->
       <div class="cell" v-if="cfg.cfHandle">
-        <span class="logo cf">CF</span>
+        <span class="logo cf">
+          <img v-if="!imgErr.cf" :src="LOGOS.cf" alt="" @error="imgErr.cf = true" />
+          <template v-else>CF</template>
+        </span>
         <div class="info">
           <b>{{ cfg.cfHandle }}</b>
           <template v-if="cf">
@@ -88,7 +99,10 @@ function nowcoderId() {
 
       <!-- 洛谷 -->
       <div class="cell" v-if="cfg.luogu">
-        <span class="logo lg">洛谷</span>
+        <span class="logo lg">
+          <img v-if="!imgErr.lg" :src="LOGOS.lg" alt="" @error="imgErr.lg = true" />
+          <template v-else>洛谷</template>
+        </span>
         <div class="info">
           <b>洛谷主页</b>
           <span class="detail">个人主页</span>
@@ -98,7 +112,10 @@ function nowcoderId() {
 
       <!-- 牛客 -->
       <div class="cell" v-if="cfg.nowcoder">
-        <span class="logo nc">牛客</span>
+        <span class="logo nc">
+          <img v-if="!imgErr.nc" :src="LOGOS.nc" alt="" @error="imgErr.nc = true" />
+          <template v-else>牛客</template>
+        </span>
         <div class="info">
           <b>牛客主页</b>
           <span class="detail">个人主页</span>
@@ -137,11 +154,13 @@ function nowcoderId() {
   place-items: center;
   color: #fff;
   font-weight: 800;
-  font-size: 15px;
+  font-size: 13px;
   flex-shrink: 0;
+  overflow: hidden;
 }
+.logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .cf { background: #1f8acb; }
-.lg { background: #e91e63; font-size: 13px; }
+.lg { background: #e91e63; }
 .nc { background: #2db55d; }
 .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .info b { color: var(--text-h); font-size: 15px; }
