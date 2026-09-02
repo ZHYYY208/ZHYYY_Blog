@@ -1,0 +1,17 @@
+# Node
+node_modules/
+frontend/dist/
+
+# Java / Maven
+backend/target/
+backend/data/
+backend/restart.sh
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
