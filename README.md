@@ -1,24 +1,69 @@
-# Personal Blog
+# ZHYYY 算法小屋 · 个人博客
 
-带音乐、简易宠物、相册、GitHub 项目展示与「说说」的个人博客。
+一个带毛玻璃 UI 的现代个人博客，基于 **Vue 3 + Spring Boot + SQLite** 实现，包含博客、说说、相册、音乐、知识树与算法战绩等模块。
 
-- **后端**: Spring Boot 4.1 (Java 24) + SQLite
-- **前端**: Vue 3 + Vite + Vue Router
-- **目录**: `backend/` API 服务 · `frontend/` Web 前端
+## ✨ 功能特性
 
-## 本地开发
+- **首页面板**：个人资料卡 + 各功能毛玻璃拼块，一目了然
+- **博客**：后台以 Markdown 撰写、实时预览，前台渲染排版（含宽表格横向滚动适配）
+- **说说**：后台发布 / 删除，前台时间线展示
+- **相册**：后台直接上传图片（`/api/upload`），前台瀑布流展示
+- **音乐**：后台上传音频入库；全站迷你播放器（默认「律动条」，点按即播，可展开选歌、拖动进度）
+- **知识树**：以后台维护的树形「技术栈」展示所学技能，前台点击大类展开/收起
+- **算法战绩**：后台填 CF handle 自动拉取 Codeforces Rating/段位，可挂洛谷/牛客主页入口
+- **虚拟宠物**：右下角会写代码的像素小猫，可戳互动
+- **管理后台**：`/admin`，支持文章 / 说说 / 相册 / 音乐 / 技术栈 / 网站设置统一管理，所有删除带二次确认与反馈
+- 站点名称、首页简介(motto) 等均可后台配置；底部展示累计运行时间
 
-### 1. 启动后端 (端口 8080)
+## 🧱 技术栈
+
+| 端 | 技术 |
+|----|------|
+| 前端 | Vue 3 (Composition API) · Vite · Vue Router · marked |
+| 后端 | Spring Boot 3+/4 (Java 17+) · Spring Web · JDBC · SQLite |
+| 部署 | Nginx 反向代理 + Systemd/后台进程（可选） |
+
+## 📁 目录结构
+
+```
+.
+├── backend/            # Spring Boot API 服务
+│   ├── src/main/java/com/blog
+│   │   ├── config/     # 拦截器 / 静态资源 / 启动器
+│   │   ├── controller/ # REST 接口
+│   │   ├── model/      # 实体
+│   │   ├── repository/ # JdbcTemplate 数据访问
+│   │   └── util/
+│   └── src/main/resources/
+│       ├── schema.sql               # SQLite 建表
+│       └── application.properties
+└── frontend/           # Vue 3 前端
+    ├── public/         # 静态资源(背景/头像/占位)
+    └── src/
+        ├── api/        # 请求封装（含 token、上传）
+        ├── components/ # 播放器 / 知识树 / 算法战绩 / 宠物
+        ├── composables/# 全局播放器状态
+        ├── views/      # 各页面
+        └── config.js   # 站点基础配置
+```
+
+## 🚀 本地开发
+
+要求：Node ≥ 18、JDK 17+（建议 21/24）
+
+### 1. 启动后端（端口 8080）
 
 ```bash
 cd backend
-# Windows 用 mvnw.cmd；Linux/macOS 用 ./mvnw
-mvnw.cmd spring-boot:run
+# Windows: mvnw.cmd   Linux/macOS: ./mvnw
+./mvnw spring-boot:run
 ```
 
-首次启动会自动在 `backend/data/blog.db` 创建 SQLite 数据库与表。
+首次启动会自动在 `backend/data/blog.db` 创建 SQLite 数据库与表，并向 `music` 表写入 3 首示例曲目（便于体验播放器，可在后台删除）。
 
-### 2. 启动前端 (端口 5173)
+> 后台管理密码默认读取环境变量 `BLOG_ADMIN_TOKEN`，未设置时回退到默认值（本地开发可忽略；生产务必设置）。
+
+### 2. 启动前端（端口 5173）
 
 ```bash
 cd frontend
@@ -26,27 +71,64 @@ npm install
 npm run dev
 ```
 
-访问 http://localhost:5173 。Vite 已配置将 `/api` 代理到后端 8080。
+打开 http://localhost:5173 。Vite 已配置将 `/api` 与 `/files` 代理到后端 8080。
 
-## 功能 API
+### 3. 后台管理
 
-| 功能 | 接口 |
+浏览器访问 http://localhost:5173/admin ，输入密码进入后台，可管理文章 / 说说 / 相册 / 音乐 / 技术栈 / 网站设置。
+
+## 📡 API 一览
+
+| 模块 | 接口 |
 |------|------|
-| 博客文章 | `GET/POST /api/posts`, `GET/DELETE /api/posts/{id}` |
-| 说说 | `GET/POST /api/shuoshuo`, `DELETE /api/shuoshuo/{id}` |
-| 相册 | `GET/POST /api/photos`, `DELETE /api/photos/{id}` |
-| 音乐 | `GET/POST /api/music`, `DELETE /api/music/{id}` |
-| GitHub 项目 | 前端直接调 GitHub API（在 `ProjectsView.vue` 填入用户名） |
+| 鉴权 | `POST /api/auth/login`（校验 token） |
+| 文章 | `GET/POST /api/posts` · `GET/DELETE /api/posts/{id}` |
+| 说说 | `GET/POST /api/shuoshuo` · `DELETE /api/shuoshuo/{id}` |
+| 相册 | `GET/POST /api/photos` · `DELETE /api/photos/{id}` |
+| 音乐 | `GET/POST /api/music` · `DELETE /api/music/{id}` |
+| 技术栈 | `GET/POST /api/tech` · `DELETE /api/tech/{id}` |
+| 上传 | `POST /api/upload`（`type=music/image`，文件存 `uploads/`） |
+| 站点配置 | `GET /api/site` · `PUT /api/site`（后台可编辑字段） |
+| 运行时间 | `GET /api/uptime` |
 
-## 配置待办
+> 除 `GET` 外的写接口均在拦截器中校验请求头 `X-Admin-Token`；上传文件经 `/files/**` 静态访问。
 
-- `frontend/src/views/ProjectsView.vue`: 填写你的 GitHub 用户名
-- 图片/音频上传: 后端提供 `/api/upload`（Multipart）后，照片和音乐 URL 指向 `/files/...`
+## ☁️ 部署（Ubuntu + Nginx）
 
-## 部署 (Ubuntu + Nginx)
+1. 构建前端产物：`cd frontend && npm run build` → `frontend/dist`
+2. 打包后端：`cd backend && ./mvnw -DskipTests package` → `target/*.jar`
+3. 服务器放置：
+   - 前端 `dist` 内容 → Nginx 站点根目录（如 `/var/www/html`）
+   - 后端 jar → `/opt/app/app.jar`，`uploads/` 与 `data/` 随 jar 运行目录生成
+4. Nginx 配置示例：
 
-1. 构建: `cd frontend && npm run build`，产物在 `frontend/dist`
-2. 后端打包: `cd backend && mvnw.cmd -DskipTests package`
-3. 服务器上: Nginx 托管 `frontend/dist` 静态文件，`/api` 和 `/files` 反代到 `localhost:8080`
+```nginx
+server {
+    listen 80;
+    root /var/www/html;
+    index index.html;
+    client_max_body_size 50m;
 
-详见后续部署文档。
+    location / { try_files $uri $uri/ /index.html; }
+    location /api/  { proxy_pass http://127.0.0.1:8080; proxy_set_header Host $host; }
+    location /files/ { proxy_pass http://127.0.0.1:8080; }
+}
+```
+
+5. 启动后端并注入管理密码环境变量：
+
+```bash
+export BLOG_ADMIN_TOKEN='你的后台密码'
+java -Xmx512m -jar /opt/app/app.jar
+```
+
+> 国内云服务器绑定域名需完成 ICP 备案；备案通过前可用 `http://服务器IP` 访问。
+
+## ⚠️ 安全提示
+
+- `BLOG_ADMIN_TOKEN` 请务必通过**环境变量**注入，不要提交到仓库
+- 写接口均需校验 token；公开站点建议保持前端只读（发布走 `/admin`）
+
+## 📄 License
+
+MIT License —— 供学习参考，自由使用。
