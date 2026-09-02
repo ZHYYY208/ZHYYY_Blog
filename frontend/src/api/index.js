@@ -1,12 +1,20 @@
 const BASE = import.meta.env.VITE_API_BASE || '/api'
 
+let adminToken = ''
+
+export function setAdminToken(t) {
+  adminToken = t
+}
+export function clearAdminToken() {
+  adminToken = ''
+}
+
 async function request(path, options = {}) {
   const headers = { 'Content-Type': 'application/json' }
-  const token = localStorage.getItem('admin_token')
-  if (token) headers['X-Admin-Token'] = token
+  if (adminToken) headers['X-Admin-Token'] = adminToken
   const res = await fetch(`${BASE}${path}`, { headers, ...options })
   if (res.status === 401) {
-    localStorage.removeItem('admin_token')
+    clearAdminToken()
     throw new Error('UNAUTHORIZED')
   }
   if (!res.ok) {
@@ -30,10 +38,12 @@ export async function upload(path, file, field = 'file', extra = {}) {
   fd.append(field, file)
   for (const [k, v] of Object.entries(extra)) fd.append(k, v)
   const headers = {}
-  const token = localStorage.getItem('admin_token')
-  if (token) headers['X-Admin-Token'] = token
+  if (adminToken) headers['X-Admin-Token'] = adminToken
   const res = await fetch(`${BASE}${path}`, { method: 'POST', headers, body: fd })
-  if (res.status === 401) throw new Error('UNAUTHORIZED')
+  if (res.status === 401) {
+    clearAdminToken()
+    throw new Error('UNAUTHORIZED')
+  }
   if (!res.ok) throw new Error(`上传失败: ${res.status}`)
   return res.json()
 }

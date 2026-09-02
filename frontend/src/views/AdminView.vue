@@ -1,10 +1,10 @@
 ﻿<script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { marked } from 'marked'
-import { api, upload as apiUpload } from '../api'
+import { api, upload as apiUpload, setAdminToken, clearAdminToken } from '../api'
 import TechBranch from '../components/TechBranch.vue'
 
-const authed = ref(!!localStorage.getItem('admin_token'))
+const authed = ref(false)
 const pwd = ref('')
 const err = ref('')
 const tab = ref('posts')
@@ -42,20 +42,20 @@ async function okConfirm() {
 
 // ---------- 登录 ----------
 async function login() {
-  localStorage.setItem('admin_token', pwd.value.trim())
+  setAdminToken(pwd.value.trim())
   try {
     await api.post('/auth/login', {})
     authed.value = true
     err.value = ''
     loadAll()
   } catch (e) {
-    localStorage.removeItem('admin_token')
+    clearAdminToken()
     err.value = e.message === 'UNAUTHORIZED' ? '密码错误' : '连接失败，请重试'
   }
 }
 
 function logout() {
-  localStorage.removeItem('admin_token')
+  clearAdminToken()
   authed.value = false
 }
 
@@ -295,10 +295,6 @@ function loadAll() {
   loadTechs()
   loadSettings()
 }
-
-onMounted(() => {
-  if (authed.value) loadAll()
-})
 </script>
 
 <template>
