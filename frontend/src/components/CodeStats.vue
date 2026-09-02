@@ -131,17 +131,23 @@ function nowcoderId() {
 </template>
 
 <style scoped>
-.stats-card { padding: 20px 24px; margin-top: 20px; }
-.head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
-.head h2 { margin: 0; font-size: 19px; color: var(--text-h); }
+.stats-card {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+.head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+.head h2 { margin: 0; font-size: 17px; color: var(--text-h); }
 .sub { color: var(--text-muted); font-size: 12px; }
-.grid { display: flex; flex-direction: column; gap: 12px; }
+.grid { display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: center; }
 
 .cell {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border: 1px solid var(--glass-border);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.35);

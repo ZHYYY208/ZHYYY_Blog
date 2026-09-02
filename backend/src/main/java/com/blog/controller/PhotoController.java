@@ -24,6 +24,11 @@ public class PhotoController {
         return repo.findAll();
     }
 
+    @GetMapping("/categories")
+    public List<String> categories() {
+        return repo.findCategories();
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Photo create(@RequestBody Photo photo) {

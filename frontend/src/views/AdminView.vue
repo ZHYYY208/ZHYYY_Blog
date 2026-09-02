@@ -8,7 +8,7 @@ const authed = ref(false)
 const pwd = ref('')
 const err = ref('')
 const tab = ref('posts')
-const settings = ref({ motto: '', cfHandle: '', nowcoder: '', luogu: '' })
+const settings = ref({ motto: '', cfHandle: '', nowcoder: '', luogu: '', about: '' })
 
 // ---------- 通用反馈 ----------
 const toast = ref('')
@@ -92,19 +92,40 @@ async function delPost(id) {
 // ---------- 说说 ----------
 const shuoshuo = ref([])
 const shuoText = ref('')
+const shuoFiles = ref([]) // 待上传图片文件
+const shuoUrls = ref([]) // 已上传成功并预览的 url
 
 async function loadShuoshuo() {
   try { shuoshuo.value = await api.get('/shuoshuo') } catch {}
 }
 
+async function onShuoFiles(e) {
+  shuoFiles.value = Array.from(e.target.files || [])
+  // 预览用本地 object URL
+  shuoUrls.value = shuoFiles.value.map((f) => URL.createObjectURL(f))
+}
+
+function removeShuoImg(i) {
+  shuoFiles.value.splice(i, 1)
+  shuoUrls.value.splice(i, 1)
+}
+
 async function addShuo() {
-  if (!shuoText.value.trim()) {
-    showToast('请先写点内容', true)
+  if (!shuoText.value.trim() && !shuoFiles.value.length) {
+    showToast('写点内容或选张图片', true)
     return
   }
   try {
-    await api.post('/shuoshuo', { content: shuoText.value })
+    const imgs = []
+    for (const f of shuoFiles.value) {
+      const up = await apiUpload('/upload', f, 'file', { type: 'image' })
+      imgs.push(up.url)
+    }
+    await api.post('/shuoshuo', { content: shuoText.value, images: imgs })
     shuoText.value = ''
+    shuoFiles.value = []
+    shuoUrls.value = []
+    document.getElementById('shuoFile').value = ''
     showToast('发布成功')
     loadShuoshuo()
   } catch (e) {
@@ -163,7 +184,15 @@ async function loadMusic() {
 
 // ---------- 相册 ----------
 const photos = ref([])
-const newPhoto = ref({ title: '', file: null })
+const photoCats = ref([])
+const newPhoto = ref({ title: '', category: '', file: null })
+const photoFilter = ref('全部')
+
+const filteredPhotos = computed(() =>
+  photoFilter.value === '全部'
+    ? photos.value
+    : photos.value.filter((p) => p.category === photoFilter.value)
+)
 
 async function onPhotoFile(e) {
   const file = e.target.files[0]
@@ -180,8 +209,12 @@ async function addPhoto() {
   }
   try {
     const up = await apiUpload('/upload', newPhoto.value.file, 'file', { type: 'image' })
-    await api.post('/photos', { title: newPhoto.value.title, url: up.url })
-    newPhoto.value = { title: '', file: null }
+    await api.post('/photos', {
+      title: newPhoto.value.title,
+      category: newPhoto.value.category,
+      url: up.url,
+    })
+    newPhoto.value = { title: '', category: '', file: null }
     document.getElementById('photoFile').value = ''
     showToast('上传成功')
     loadPhotos()
@@ -197,7 +230,11 @@ async function delPhoto(id) {
 }
 
 async function loadPhotos() {
-  try { photos.value = await api.get('/photos') } catch {}
+  try {
+    photos.value = await api.get('/photos')
+    const all = await api.get('/photos/categories')
+    photoCats.value = all
+  } catch {}
 }
 
 // ---------- 技术栈 ----------
@@ -270,6 +307,7 @@ async function loadSettings() {
     settings.value.cfHandle = cfg.cfHandle || ''
     settings.value.nowcoder = cfg.nowcoder || ''
     settings.value.luogu = cfg.luogu || ''
+    settings.value.about = cfg.about || ''
   } catch {}
 }
 
@@ -280,6 +318,7 @@ async function saveSettings() {
       cfHandle: settings.value.cfHandle,
       nowcoder: settings.value.nowcoder,
       luogu: settings.value.luogu,
+      about: settings.value.about,
     })
     showToast('保存成功')
   } catch (e) {
@@ -353,15 +392,30 @@ function loadAll() {
       <section v-if="tab === 'shuoshuo'" class="glass card">
         <h2>发一条说说</h2>
         <textarea v-model="shuoText" rows="3" placeholder="此刻想说点什么…"></textarea>
+        <div class="up-row" style="margin-top: 10px">
+          <label class="file-btn">
+            添加图片（可多选）
+            <input id="shuoFile" type="file" accept="image/*" multiple hidden @change="onShuoFiles" />
+          </label>
+        </div>
+        <div v-if="shuoUrls.length" class="shuo-prev">
+          <div v-for="(u, i) in shuoUrls" :key="i" class="prev-cell">
+            <img :src="u" alt="" />
+            <button @click="removeShuoImg(i)">×</button>
+          </div>
+        </div>
         <div class="row">
           <button class="primary" @click="addShuo">发布</button>
         </div>
       </section>
 
       <section v-if="tab === 'shuoshuo'" class="list">
-        <div v-for="s in shuoshuo" :key="s.id" class="glass item">
+        <div v-for="s in shuoshuo" :key="s.id" class="glass item shuo-item">
           <div class="item-info">
             <p>{{ s.content }}</p>
+            <div v-if="s.images && s.images.length" class="shuo-imgs">
+              <img v-for="(img, i) in s.images" :key="i" :src="img" alt="" loading="lazy" />
+            </div>
             <span>{{ s.createdAt }}</span>
           </div>
           <div class="ops"><button @click="askConfirm('删除说说', '确定删除这条说说吗？', () => delShuo(s.id))">删除</button></div>
@@ -403,21 +457,45 @@ function loadAll() {
             <input id="photoFile" type="file" accept="image/*" hidden @change="onPhotoFile" />
           </label>
           <input v-model="newPhoto.title" placeholder="照片说明（可选）" class="input flex1" />
+          <input
+            v-model="newPhoto.category"
+            list="photoCatList"
+            placeholder="分类名（可填新分类或选已有）"
+            class="input flex1"
+          />
+          <datalist id="photoCatList">
+            <option v-for="c in photoCats" :key="c" :value="c"></option>
+          </datalist>
         </div>
         <div class="row">
           <button class="primary" @click="addPhoto">上传</button>
         </div>
       </section>
 
+      <section v-if="tab === 'photos'" class="ph-toolbar">
+        <button
+          v-for="c in ['全部', ...photoCats]"
+          :key="c"
+          class="tab-pill"
+          :class="{ on: photoFilter === c }"
+          @click="photoFilter = c"
+        >
+          {{ c }}
+        </button>
+      </section>
+
       <section v-if="tab === 'photos'" class="grid-list">
-        <div v-for="p in photos" :key="p.id" class="glass ph-card">
+        <div v-for="p in filteredPhotos" :key="p.id" class="glass ph-card">
           <img :src="p.url" :alt="p.title" loading="lazy" />
           <div class="ph-cap">
-            <span>{{ p.title }}</span>
+            <span>
+              {{ p.title }}
+              <em v-if="p.category" class="phcat">{{ p.category }}</em>
+            </span>
             <button @click="askConfirm('删除照片', `确定删除「${p.title}」吗？`, () => delPhoto(p.id))">删除</button>
           </div>
         </div>
-        <p v-if="!photos.length" class="hint">还没有照片</p>
+        <p v-if="!filteredPhotos.length" class="hint">这个分类还没有照片</p>
       </section>
 
       <!-- 技术栈管理 -->
@@ -439,6 +517,16 @@ function loadAll() {
 
         <label class="lab">首页简介（motto）</label>
         <textarea v-model="settings.motto" rows="2" placeholder="一行自我介绍，显示在首页头像旁"></textarea>
+
+        <div class="set-row">
+          <label class="lab">「关于」页正文（支持 Markdown）</label>
+          <textarea
+            v-model="settings.about"
+            rows="10"
+            placeholder="写一段自我介绍，支持 Markdown，显示在关于页"
+            class="input"
+          ></textarea>
+        </div>
 
         <h3 class="sub-h">算法战绩（首页展示）</h3>
         <div class="set-row">
@@ -583,6 +671,27 @@ h1 { margin: 8px 0 24px; color: var(--text-h); }
 }
 .file-btn:hover { background: var(--accent); color: #fff; }
 
+.ph-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.tab-pill {
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 5px 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.tab-pill.on { background: var(--accent); color: #fff; border-color: transparent; }
+.phcat {
+  display: inline-block;
+  font-style: normal;
+  margin-left: 6px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 11px;
+  border-radius: 999px;
+  padding: 1px 10px;
+}
 .grid-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -618,10 +727,35 @@ h1 { margin: 8px 0 24px; color: var(--text-h); }
 
 .list { display: flex; flex-direction: column; gap: 12px; }
 .item { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 20px; }
-.item-info { min-width: 0; }
+.shuo-item { align-items: flex-start; }
+.item-info { min-width: 0; flex: 1; }
 .item-info strong { color: var(--text-h); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.item-info p { margin: 0 0 4px; color: var(--text-h); }
+.item-info p { margin: 0 0 4px; color: var(--text-h); white-space: pre-wrap; }
 .item-info span { color: var(--text-muted); font-size: 12px; }
+.shuo-imgs { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
+.shuo-imgs img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+}
+.shuo-prev { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+.prev-cell { position: relative; }
+.prev-cell img { width: 90px; height: 90px; object-fit: cover; border-radius: 10px; border: 1px solid var(--glass-border); }
+.prev-cell button {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: #ef4444;
+  color: #fff;
+  cursor: pointer;
+  line-height: 1;
+}
 .ops { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
 .ops a { font-size: 13px; }
 .ops button {

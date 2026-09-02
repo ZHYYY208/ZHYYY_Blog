@@ -1,12 +1,27 @@
 <script setup>
 import VirtualPet from './components/VirtualPet.vue'
-import MiniPlayer from './components/MiniPlayer.vue'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { BLOG } from './config'
+
+// 建站使用的技术栈（非知识树）
+const techStack = [
+  { name: 'Vue', logo: '/logos/vue.svg', color: '#42b883' },
+  { name: 'Spring Boot', logo: '/logos/spring.svg', color: '#6db33f' },
+  { name: 'SQLite', logo: '/logos/sqlite.svg', color: '#2f7fc1' },
+  { name: 'Nginx', logo: '/logos/nginx.svg', color: '#009639' },
+]
 
 const uptime = ref({ days: 0, hours: 0, minutes: 0, seconds: 0 })
 const fetched = ref(false)
+const clock = ref('')
+const route = useRoute()
+const isHome = computed(() => route.path === '/')
 let timer = null
+
+function pad(n) {
+  return String(n).padStart(2, '0')
+}
 
 async function loadUptime() {
   try {
@@ -14,6 +29,8 @@ async function loadUptime() {
     fetched.value = true
     const start = Date.now() - base.totalSeconds * 1000
     timer = setInterval(() => {
+      const d = new Date()
+      clock.value = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
       const s = Math.floor((Date.now() - start) / 1000)
       uptime.value = {
         days: Math.floor(s / 86400),
@@ -25,7 +42,9 @@ async function loadUptime() {
   } catch {}
 }
 
-onMounted(loadUptime)
+onMounted(() => {
+  loadUptime()
+})
 onBeforeUnmount(() => clearInterval(timer))
 </script>
 
@@ -46,6 +65,7 @@ onBeforeUnmount(() => clearInterval(timer))
         <router-link to="/photos">相册</router-link>
         <router-link to="/music">音乐</router-link>
         <router-link to="/projects">项目</router-link>
+        <router-link to="/about">关于</router-link>
       </nav>
     </header>
 
@@ -53,14 +73,30 @@ onBeforeUnmount(() => clearInterval(timer))
       <router-view />
     </main>
 
-    <footer class="footer">
+    <footer class="foot">
+      <!-- 底部信息栏：仅首页显示 -->
+      <div v-if="isHome" class="footbar glass">
+        <div class="fclock">
+          <span class="flabel">北京时间</span>
+          <span class="fnum">{{ clock || '--:--:--' }}</span>
+        </div>
+        <div class="ftech">
+          <span class="flabel">技术栈</span>
+          <span v-for="t in techStack" :key="t.name" class="chip" :style="{ background: t.color }">
+            <img class="chip-logo" :src="t.logo" alt="" />
+            <span>{{ t.name }}</span>
+          </span>
+        </div>
+        <div class="fup" v-if="fetched">
+          <span class="flabel">已运行</span>
+          <span class="fnum2">
+            <b>{{ uptime.days }}</b>天 <b>{{ uptime.hours }}</b>时 <b>{{ uptime.minutes }}</b>分 <b>{{ uptime.seconds }}</b>秒
+          </span>
+        </div>
+      </div>
       <p class="cpy">© {{ new Date().getFullYear() }} {{ BLOG.name }} · Powered by Vue + Spring Boot</p>
-      <p v-if="fetched" class="up">
-        已运行 <b>{{ uptime.days }}</b> 天 <b>{{ uptime.hours }}</b> 时 <b>{{ uptime.minutes }}</b> 分 <b>{{ uptime.seconds }}</b> 秒
-      </p>
     </footer>
 
-    <MiniPlayer />
     <VirtualPet />
   </div>
 </template>
@@ -103,7 +139,7 @@ onBeforeUnmount(() => clearInterval(timer))
   align-items: center;
   gap: 14px;
   width: calc(100% - 24px);
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 8px auto 0;
   padding: 8px 16px;
   border-radius: 18px;
@@ -158,22 +194,67 @@ onBeforeUnmount(() => clearInterval(timer))
 .content {
   flex: 1;
   width: 100%;
-  max-width: 900px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 28px 16px 60px;
+  padding: 18px 16px 10px;
   box-sizing: border-box;
 }
 
-.footer {
+.foot {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px 18px;
+  box-sizing: border-box;
+}
+.footbar {
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 10px 20px;
+  border-radius: 16px;
+  font-size: 12px;
+  color: var(--text);
+}
+.fclock, .ftech, .fup { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.flabel { color: var(--text-muted); font-size: 11px; }
+.fnum {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--text-h);
+}
+.chip {
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px 4px 5px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.chip-logo {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  object-fit: contain;
+  padding: 1px;
+}
+.fup b { color: var(--accent); font-weight: 800; }
+.fnum2 { font-family: ui-monospace, Consolas, monospace; color: var(--text-h); }
+.cpy {
+  margin: 0;
   text-align: center;
-  padding: 18px 16px 22px;
   font-size: 12px;
   color: var(--text);
   text-shadow: 0 1px 3px rgba(255, 255, 255, 0.8);
 }
-.footer .cpy { margin: 0 0 6px; }
-.footer .up { margin: 0; letter-spacing: 0.5px; }
-.footer b { color: var(--accent); }
 
 /* 手机端适配 */
 @media (max-width: 760px) {

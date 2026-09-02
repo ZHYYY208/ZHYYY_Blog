@@ -17,17 +17,24 @@ public class PhotoRepository {
 
     public List<Photo> findAll() {
         return jdbc.query(
-                "SELECT id, title, url, created_at FROM photos ORDER BY id DESC",
+                "SELECT id, title, category, url, created_at FROM photos ORDER BY id DESC",
                 (rs, i) -> new Photo(
                         rs.getLong("id"),
                         rs.getString("title"),
+                        rs.getString("category"),
                         rs.getString("url"),
                         rs.getString("created_at")));
     }
 
+    public List<String> findCategories() {
+        return jdbc.queryForList(
+                "SELECT DISTINCT category FROM photos WHERE category <> '' ORDER BY category", String.class);
+    }
+
     public Photo save(Photo photo) {
-        jdbc.update("INSERT INTO photos (title, url, created_at) VALUES (?, ?, ?)",
-                photo.getTitle(), photo.getUrl(), photo.getCreatedAt());
+        jdbc.update("INSERT INTO photos (title, category, url, created_at) VALUES (?, ?, ?, ?)",
+                photo.getTitle(), photo.getCategory() == null ? "" : photo.getCategory(),
+                photo.getUrl(), photo.getCreatedAt());
         Long id = jdbc.queryForObject("SELECT last_insert_rowid()", Long.class);
         photo.setId(id);
         return photo;
