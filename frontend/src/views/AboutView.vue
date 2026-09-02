@@ -39,26 +39,28 @@ const ic = {
   <div>
     <h1>关于</h1>
 
-    <section class="glass card who">
-      <img class="avatar" src="/avatar.jpg" alt="avatar" />
-      <div>
-        <h2>{{ BLOG.name }}</h2>
-        <p class="motto">{{ motto }}</p>
+    <section class="glass about">
+      <div class="aside">
+        <img class="avatar" src="/avatar.jpg" alt="avatar" />
         <div class="socials">
           <a v-for="s in socials" :key="s.name" :href="s.href" target="_blank" rel="noopener" :title="s.name">
-            <svg v-if="s.icon === 'google'" viewBox="0 0 24 24" width="18" height="18">
+            <svg v-if="s.icon === 'google'" viewBox="0 0 24 24" width="16" height="16">
               <path fill="#4285F4" d="M23.5 12.27c0-.79-.07-1.55-.2-2.28H12v4.32h6.46a5.5 5.5 0 0 1-2.39 3.61v3h3.87c2.26-2.09 3.56-5.17 3.56-8.65z"/>
               <path fill="#34A853" d="M12 24c3.24 0 5.96-1.08 7.94-2.91l-3.87-3c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.29v3.1A12 12 0 0 0 12 24z"/>
               <path fill="#FBBC05" d="M5.27 14.28a7.2 7.2 0 0 1 0-4.56v-3.1H1.29a12 12 0 0 0 0 10.76l3.98-3.1z"/>
               <path fill="#EA4335" d="M12 4.76c1.76 0 3.35.61 4.6 1.8l3.45-3.45A11.99 11.99 0 0 0 1.29 6.62l3.98 3.1C6.22 6.87 8.87 4.76 12 4.76z"/>
             </svg>
-            <svg v-else viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path :d="ic[s.icon]" /></svg>
+            <svg v-else viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path :d="ic[s.icon]" /></svg>
           </a>
         </div>
       </div>
-    </section>
 
-    <section v-if="aboutHtml" class="glass card prose" v-html="aboutHtml"></section>
+      <div class="main">
+        <h2 class="name">{{ BLOG.name }}</h2>
+        <p class="motto">{{ motto }}</p>
+        <div v-if="aboutHtml" class="prose" v-html="aboutHtml"></div>
+      </div>
+    </section>
 
     <section class="glass card">
       <h3>最近动态</h3>
@@ -81,40 +83,55 @@ const ic = {
 
 <style scoped>
 h1 { margin: 8px 0 24px; color: var(--text-h); }
-.card { padding: 26px 30px; margin-bottom: 18px; }
-.who { display: flex; gap: 22px; align-items: center; }
-.avatar {
-  width: 96px;
-  height: 96px;
-  border-radius: 24px;
-  object-fit: cover;
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+.about {
+  display: flex;
+  gap: 34px;
+  padding: 32px 34px;
+  margin-bottom: 18px;
+}
+.aside {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
   flex-shrink: 0;
 }
-.who h2 { margin: 0 0 6px; color: var(--text-h); font-size: 24px; }
-.motto { margin: 0 0 12px; color: var(--text); }
-.socials { display: flex; gap: 10px; margin-top: 12px; }
+.avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 30px;
+  object-fit: cover;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 26px rgba(99, 102, 241, 0.32);
+}
+.socials { display: flex; gap: 8px; }
 .socials a {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
-  border-radius: 12px;
+  border-radius: 11px;
   color: var(--text);
   border: 1px solid var(--glass-border);
   transition: all 0.25s;
 }
 .socials a:hover { color: #fff; background: var(--accent); border-color: transparent; }
 
-.card h3 { margin: 0 0 14px; color: var(--text-h); }
-.prose { line-height: 1.85; color: var(--text); }
+.main { flex: 1; min-width: 0; }
+.name { margin: 0 0 10px; color: var(--text-h); font-size: 30px; }
+.motto { margin: 0 0 6px; color: var(--accent); font-weight: 600; font-size: 15px; }
+
+.prose { line-height: 1.9; color: var(--text); margin-top: 12px; border-top: 1px solid var(--glass-border); padding-top: 16px; }
 .prose :deep(h1), .prose :deep(h2), .prose :deep(h3) { color: var(--text-h); }
 .prose :deep(a) { color: var(--accent); }
 .prose :deep(img) { max-width: 100%; border-radius: 12px; }
 .prose :deep(pre) { background: rgba(15,23,42,.9); color: #cbd5e1; padding: 14px; border-radius: 12px; overflow-x: auto; }
 .prose :deep(blockquote) { border-left: 4px solid var(--accent); margin: 0; padding-left: 14px; color: var(--text-muted); }
 .prose :deep(hr) { border: none; border-top: 1px solid var(--glass-border); }
+.prose :deep(ul), .prose :deep(ol) { padding-left: 1.2em; }
+
+.card { padding: 26px 30px; margin-bottom: 18px; }
+.card h3 { margin: 0 0 14px; color: var(--text-h); }
 
 .act { display: flex; flex-direction: column; }
 .a {
@@ -140,7 +157,7 @@ h1 { margin: 8px 0 24px; color: var(--text-h); }
 .dt { color: var(--text-muted); font-size: 12px; flex-shrink: 0; }
 .empty { color: var(--text-muted); }
 
-@media (max-width: 640px) {
-  .who { flex-direction: column; align-items: flex-start; }
+@media (max-width: 700px) {
+  .about { flex-direction: column; align-items: center; text-align: center; padding: 24px 20px; }
 }
 </style>
