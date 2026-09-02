@@ -3,19 +3,18 @@ import { computed, onMounted, ref } from 'vue'
 import { api } from '../api'
 
 const photos = ref([])
+const cats = ref([])
 const error = ref('')
-const cur = ref('全部')
-const cats = ref(['全部'])
+const cur = ref(0) // 0=全部
 
 const filtered = computed(() =>
-  cur.value === '全部' ? photos.value : photos.value.filter((p) => p.category === cur.value)
+  cur.value === 0 ? photos.value : photos.value.filter((p) => p.categoryId === cur.value)
 )
 
 async function load() {
   try {
     photos.value = await api.get('/photos')
-    const all = await api.get('/photos/categories')
-    cats.value = ['全部', ...all]
+    cats.value = await api.get('/photo-categories')
   } catch (e) {
     error.value = '加载失败：' + e.message
   }
@@ -29,9 +28,16 @@ onMounted(load)
     <h1>相册</h1>
     <p v-if="error" class="hint">{{ error }}</p>
 
-    <div v-if="cats.length > 1" class="tabs">
-      <button v-for="c in cats" :key="c" class="tab" :class="{ on: cur === c }" @click="cur = c">
-        {{ c }}
+    <div v-if="cats.length" class="tabs">
+      <button class="tab" :class="{ on: cur === 0 }" @click="cur = 0">全部</button>
+      <button
+        v-for="c in cats"
+        :key="c.id"
+        class="tab"
+        :class="{ on: cur === c.id }"
+        @click="cur = c.id"
+      >
+        {{ c.name }}
       </button>
     </div>
 
@@ -40,7 +46,7 @@ onMounted(load)
         <img :src="p.url" :alt="p.title" loading="lazy" />
         <figcaption>
           {{ p.title }}
-          <span v-if="p.category" class="cat">{{ p.category }}</span>
+          <span v-if="p.categoryName" class="cat">{{ p.categoryName }}</span>
         </figcaption>
       </figure>
     </div>

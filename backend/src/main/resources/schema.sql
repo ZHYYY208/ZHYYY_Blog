@@ -13,12 +13,18 @@ CREATE TABLE IF NOT EXISTS shuoshuo (
     created_at TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS photos (
+CREATE TABLE IF NOT EXISTS photo_categories (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    title      TEXT NOT NULL DEFAULT '',
-    category   TEXT NOT NULL DEFAULT '',
-    url        TEXT NOT NULL,
+    name       TEXT NOT NULL,
     created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS photos (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    title       TEXT NOT NULL DEFAULT '',
+    category_id INTEGER,
+    url         TEXT NOT NULL,
+    created_at  TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS music (

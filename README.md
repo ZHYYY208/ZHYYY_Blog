@@ -7,7 +7,7 @@
 - **首页**：个人信息卡 + 音乐模块 + 算法战绩 + 功能面板拼块；底部信息栏（北京时间 / 建站技术栈 logo / 运行时间）
 - **博客**：后台以 Markdown 撰写、实时预览，前台渲染排版（含宽表格横向滚动适配）
 - **说说**：后台发布 / 删除，支持**一次附带多张图片**，前台灯箱放大查看
-- **相册**：后台直接上传图片并**归入自定义分类**，前台可按分类筛选，分类名可随意填
+- **相册**：后台先**创建文件夹**再进文件夹内上传图片，前台按文件夹筛选；未归类照片可随时移动到对应文件夹
 - **音乐**：后台上传音频入库；首页音乐模块（旋转唱片 + 歌单弹窗）+ 音乐页「音乐馆」沉浸式播放
 - **知识树**：以后台维护的树形「所学技术」展示，前台点击大类展开/收起
 - **算法战绩**：后台填 CF handle 自动拉取 Codeforces Rating/段位（带段位色），可挂洛谷 / 牛客主页入口
@@ -85,7 +85,8 @@ npm run dev
 | 鉴权 | `POST /api/auth/login`（校验 token） |
 | 文章 | `GET/POST /api/posts` · `GET/DELETE /api/posts/{id}` |
 | 说说 | `GET/POST /api/shuoshuo`（支持 `images[]`）· `DELETE /api/shuoshuo/{id}` |
-| 相册 | `GET/POST /api/photos`（支持 `category`）· `GET /api/photos/categories` · `DELETE /api/photos/{id}` |
+| 相册 | `GET/POST /api/photos`（支持 `categoryId`）· `PUT /api/photos/{id}/category` · `DELETE /api/photos/{id}` |
+| 相册文件夹 | `GET/POST /api/photo-categories` · `DELETE /api/photo-categories/{id}` |
 | 音乐 | `GET/POST /api/music` · `DELETE /api/music/{id}` |
 | 技术栈 | `GET/POST /api/tech` · `DELETE /api/tech/{id}` |
 | 上传 | `POST /api/upload`（`type=music/image`，文件存 `uploads/`） |

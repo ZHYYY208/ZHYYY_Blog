@@ -182,17 +182,62 @@ async function loadMusic() {
   try { musics.value = await api.get('/music') } catch {}
 }
 
-// ---------- 相册 ----------
+// ---------- 相册（文件夹式） ----------
 const photos = ref([])
-const photoCats = ref([])
-const newPhoto = ref({ title: '', category: '', file: null })
-const photoFilter = ref('全部')
+const cats = ref([])         // [{id,name}]
+const view = ref('home')     // home=文件夹网格, cat=某文件夹
+const activeCat = ref(null)  // {id,name} 或 {id:null,name:'未分类'}
+const newCatName = ref('')
+const newPhoto = ref({ title: '', file: null })
 
-const filteredPhotos = computed(() =>
-  photoFilter.value === '全部'
-    ? photos.value
-    : photos.value.filter((p) => p.category === photoFilter.value)
-)
+const catCount = computed(() => {
+  const m = {}
+  for (const p of photos.value) {
+    const k = p.categoryId == null ? 'null' : String(p.categoryId)
+    m[k] = (m[k] || 0) + 1
+  }
+  return m
+})
+
+const inViewPhotos = computed(() => {
+  if (!activeCat.value) return []
+  if (activeCat.value.id === null) {
+    return photos.value.filter((p) => p.categoryId == null)
+  }
+  return photos.value.filter((p) => p.categoryId === activeCat.value.id)
+})
+
+async function loadPhotos() {
+  try {
+    photos.value = await api.get('/photos')
+    cats.value = await api.get('/photo-categories')
+  } catch {}
+}
+
+async function addCat() {
+  const name = newCatName.value.trim()
+  if (!name) {
+    showToast('请输入文件夹名称', true)
+    return
+  }
+  try {
+    await api.post('/photo-categories', { name })
+    newCatName.value = ''
+    showToast('文件夹已创建')
+    loadPhotos()
+  } catch (e) {
+    showToast(e.message === 'UNAUTHORIZED' ? '登录已过期，请重新登录' : '创建失败', true)
+  }
+}
+
+function openCat(c) {
+  activeCat.value = c
+  view.value = 'cat'
+}
+function goHome() {
+  view.value = 'home'
+  activeCat.value = null
+}
 
 async function onPhotoFile(e) {
   const file = e.target.files[0]
@@ -211,10 +256,10 @@ async function addPhoto() {
     const up = await apiUpload('/upload', newPhoto.value.file, 'file', { type: 'image' })
     await api.post('/photos', {
       title: newPhoto.value.title,
-      category: newPhoto.value.category,
+      categoryId: activeCat.value && activeCat.value.id !== null ? activeCat.value.id : null,
       url: up.url,
     })
-    newPhoto.value = { title: '', category: '', file: null }
+    newPhoto.value = { title: '', file: null }
     document.getElementById('photoFile').value = ''
     showToast('上传成功')
     loadPhotos()
@@ -223,18 +268,22 @@ async function addPhoto() {
   }
 }
 
+async function movePhoto(id, targetCatId) {
+  await api.put(`/photos/${id}/category`, { categoryId: targetCatId })
+  loadPhotos()
+}
+
 async function delPhoto(id) {
   await api.delete(`/photos/${id}`)
   showToast('已删除')
   loadPhotos()
 }
 
-async function loadPhotos() {
-  try {
-    photos.value = await api.get('/photos')
-    const all = await api.get('/photos/categories')
-    photoCats.value = all
-  } catch {}
+async function delCat(id) {
+  await api.delete(`/photo-categories/${id}`)
+  showToast('已删除，其中照片退回未分类')
+  goHome()
+  loadPhotos()
 }
 
 // ---------- 技术栈 ----------
@@ -448,55 +497,71 @@ function loadAll() {
         </div>
       </section>
 
-      <!-- 相册管理 -->
-      <section v-if="tab === 'photos'" class="glass card">
-        <h2>上传照片</h2>
-        <div class="up-row">
-          <label class="file-btn">
-            选择图片
-            <input id="photoFile" type="file" accept="image/*" hidden @change="onPhotoFile" />
-          </label>
-          <input v-model="newPhoto.title" placeholder="照片说明（可选）" class="input flex1" />
-          <input
-            v-model="newPhoto.category"
-            list="photoCatList"
-            placeholder="分类名（可填新分类或选已有）"
-            class="input flex1"
-          />
-          <datalist id="photoCatList">
-            <option v-for="c in photoCats" :key="c" :value="c"></option>
-          </datalist>
-        </div>
-        <div class="row">
-          <button class="primary" @click="addPhoto">上传</button>
-        </div>
-      </section>
-
-      <section v-if="tab === 'photos'" class="ph-toolbar">
-        <button
-          v-for="c in ['全部', ...photoCats]"
-          :key="c"
-          class="tab-pill"
-          :class="{ on: photoFilter === c }"
-          @click="photoFilter = c"
-        >
-          {{ c }}
-        </button>
-      </section>
-
-      <section v-if="tab === 'photos'" class="grid-list">
-        <div v-for="p in filteredPhotos" :key="p.id" class="glass ph-card">
-          <img :src="p.url" :alt="p.title" loading="lazy" />
-          <div class="ph-cap">
-            <span>
-              {{ p.title }}
-              <em v-if="p.category" class="phcat">{{ p.category }}</em>
-            </span>
-            <button @click="askConfirm('删除照片', `确定删除「${p.title}」吗？`, () => delPhoto(p.id))">删除</button>
+      <!-- 相册管理（文件夹式） -->
+      <template v-if="tab === 'photos'">
+        <!-- 首页：新建文件夹 + 文件夹网格 -->
+        <section v-if="view === 'home'" class="glass card">
+          <div class="tech-head">
+            <h2>相册文件夹</h2>
+            <div class="addbox">
+              <input v-model="newCatName" placeholder="新文件夹名称，如 比赛" class="input" @keyup.enter="addCat" />
+              <button class="primary" @click="addCat">＋ 新建</button>
+            </div>
           </div>
-        </div>
-        <p v-if="!filteredPhotos.length" class="hint">这个分类还没有照片</p>
-      </section>
+          <p class="tip">先创建文件夹，再点进去添加照片</p>
+        </section>
+
+        <section v-if="view === 'home'" class="cat-grid">
+          <button v-if="(catCount.null || 0) > 0" class="glass cat-card" @click="openCat({ id: null, name: '未分类' })">
+            <b>未分类</b>
+            <small>{{ catCount.null || 0 }} 张待归类</small>
+          </button>
+          <div v-for="c in cats" :key="c.id" class="glass cat-card">
+            <button class="cat-main" @click="openCat(c)">
+              <b>{{ c.name }}</b>
+              <small>{{ catCount[String(c.id)] || 0 }} 张</small>
+            </button>
+            <button class="cat-del" @click="askConfirm('删除文件夹', `确定删除「${c.name}」吗？其中照片将退回未分类。`, () => delCat(c.id))">×</button>
+          </div>
+          <p v-if="!cats.length && !(catCount.null)" class="hint" style="grid-column: 1/-1">还没有文件夹，先建一个吧</p>
+        </section>
+
+        <!-- 文件夹详情 -->
+        <template v-else>
+          <section class="glass card">
+            <div class="tech-head">
+              <button class="back" @click="goHome">← 返回</button>
+              <h2 class="inline">{{ activeCat && activeCat.name }}</h2>
+            </div>
+            <div class="up-row">
+              <label class="file-btn">
+                选择图片
+                <input id="photoFile" type="file" accept="image/*" hidden @change="onPhotoFile" />
+              </label>
+              <input v-model="newPhoto.title" placeholder="照片说明（可选）" class="input flex1" />
+              <button class="primary" @click="addPhoto">上传到本文件夹</button>
+            </div>
+          </section>
+
+          <section class="grid-list">
+            <div v-for="p in inViewPhotos" :key="p.id" class="glass ph-card">
+              <img :src="p.url" :alt="p.title" loading="lazy" />
+              <div class="ph-cap">
+                <span>{{ p.title }}</span>
+                <div class="ph-ops">
+                  <!-- 未分类时可选移动到文件夹 -->
+                  <select v-if="activeCat && activeCat.id === null && cats.length" class="mvsel" @change="movePhoto(p.id, Number($event.target.value))">
+                    <option value="">移动到…</option>
+                    <option v-for="c in cats" :key="c.id" :value="c.id">→ {{ c.name }}</option>
+                  </select>
+                  <button @click="askConfirm('删除照片', `确定删除「${p.title}」吗？`, () => delPhoto(p.id))">删除</button>
+                </div>
+              </div>
+            </div>
+            <p v-if="!inViewPhotos.length" class="hint">{{ activeCat && activeCat.name }} 文件夹还没有照片</p>
+          </section>
+        </template>
+      </template>
 
       <!-- 技术栈管理 -->
       <section v-if="tab === 'tech'" class="glass card">
@@ -670,6 +735,66 @@ h1 { margin: 8px 0 24px; color: var(--text-h); }
   background: var(--accent-bg);
 }
 .file-btn:hover { background: var(--accent); color: #fff; }
+
+.addbox { display: flex; gap: 8px; align-items: center; }
+.addbox .input { width: 220px; margin: 0; }
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.cat-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 18px 12px;
+  cursor: pointer;
+  text-align: center;
+  color: var(--text-h);
+  min-height: 86px;
+  box-sizing: border-box;
+}
+.cat-card:hover { transform: translateY(-2px); }
+.cat-card b { font-size: 16px; }
+.cat-card small { color: var(--text-muted); font-size: 12px; }
+.cat-main { border: none; background: transparent; cursor: pointer; color: inherit; display: flex; flex-direction: column; gap: 6px; align-items: center; width: 100%; }
+.cat-del {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  line-height: 1;
+}
+.back {
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text);
+  border-radius: 999px;
+  padding: 5px 14px;
+  cursor: pointer;
+}
+.inline { margin: 0; font-size: 18px; }
+.mvsel {
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 3px 6px;
+  font-size: 11px;
+  cursor: pointer;
+  max-width: 110px;
+}
+.ph-ops { display: flex; gap: 8px; align-items: center; }
 
 .ph-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
 .tab-pill {

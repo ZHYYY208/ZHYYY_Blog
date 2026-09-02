@@ -24,16 +24,17 @@ public class PhotoController {
         return repo.findAll();
     }
 
-    @GetMapping("/categories")
-    public List<String> categories() {
-        return repo.findCategories();
-    }
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Photo create(@RequestBody Photo photo) {
         photo.setCreatedAt(TimeUtil.now());
         return repo.save(photo);
+    }
+
+    @PutMapping("/{id}/category")
+    public ResponseEntity<Void> move(@PathVariable Long id, @RequestBody Photo body) {
+        repo.setCategory(id, body.getCategoryId());
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
