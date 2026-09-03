@@ -11,7 +11,9 @@ const listOpen = ref(false)
 function openList() {
   listOpen.value = true
 }
-
+function closeList() {
+  listOpen.value = false
+}
 function pick(i) {
   playAt(i)
   listOpen.value = false
@@ -63,29 +65,31 @@ onMounted(() => {
       <span>{{ fmt(hasSelection ? state.duration : 0) }}</span>
     </div>
 
-    <!-- 歌单弹窗 -->
-    <div v-if="listOpen" class="mask" @click.self="listOpen = false">
-      <div class="modal glass">
-        <div class="mhead">
-          <b>选择歌曲</b>
-          <button class="mclose" @click="listOpen = false" title="关闭">×</button>
-        </div>
-        <div class="mlist">
-          <div
-            v-for="(t, i) in state.tracks"
-            :key="t.id"
-            class="li"
-            :class="{ cur: i === state.index }"
-            @click="pick(i)"
-          >
-            <span class="n">{{ i === state.index ? '♪' : i + 1 }}</span>
-            <span class="nm">{{ t.title }}</span>
-            <span class="ar">{{ t.artist }}</span>
+    <!-- 歌单遮罩弹窗 -->
+    <Teleport to="body">
+      <div v-if="listOpen" class="mask" @click.self="closeList">
+        <div class="modal glass">
+          <div class="mhead">
+            <b>选择歌曲</b>
+            <button class="mclose" @click="closeList" title="关闭">×</button>
           </div>
-          <div v-if="!state.tracks.length" class="empty">暂无歌曲</div>
+          <div class="mlist">
+            <div
+              v-for="(t, i) in state.tracks"
+              :key="t.id"
+              class="li"
+              :class="{ cur: i === state.index }"
+              @click="pick(i)"
+            >
+              <span class="n">{{ i === state.index ? '♪' : i + 1 }}</span>
+              <span class="nm">{{ t.title }}</span>
+              <span class="ar">{{ t.artist }}</span>
+            </div>
+            <div v-if="!state.tracks.length" class="empty">暂无歌曲</div>
+          </div>
         </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
@@ -154,7 +158,7 @@ onMounted(() => {
 .times { width: 100%; display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
 .times .toggle { cursor: pointer; color: var(--accent); }
 
-/* 歌单模态弹窗 */
+/* 歌单遮罩弹窗 */
 .mask {
   position: fixed;
   inset: 0;
@@ -166,39 +170,75 @@ onMounted(() => {
   padding: 16px;
 }
 .modal {
-  width: 100%;
-  max-width: 420px;
-  max-height: 70vh;
+  width: 340px;
+  max-width: calc(100vw - 40px);
   display: flex;
   flex-direction: column;
-  padding: 12px;
-  border-radius: 18px;
+  padding: 10px;
+  border-radius: 16px;
   box-sizing: border-box;
 }
 .mhead {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 8px 10px;
+  padding: 2px 8px 8px;
   color: var(--text-h);
+  font-size: 14px;
+  border-bottom: 1px solid var(--glass-border);
 }
 .mclose {
   border: none;
   background: var(--accent-bg);
   color: var(--accent);
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1;
 }
-.mlist { overflow-y: auto; }
-.li { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+.mlist {
+  max-height: 300px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-top: 4px;
+}
+.li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
 .li:hover { background: var(--accent-bg); }
-.li.cur { color: var(--accent); }
-.n { width: 20px; text-align: center; color: var(--text-muted); flex-shrink: 0; }
-.nm { flex: 1; color: var(--text-h); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ar { color: var(--text-muted); font-size: 11px; }
+.li.cur { color: var(--accent); background: var(--accent-bg); }
+.n {
+  width: 26px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.nm {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-h);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ar {
+  max-width: 90px;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
 .empty { padding: 14px; text-align: center; color: var(--text-muted); font-size: 12px; }
 </style>
