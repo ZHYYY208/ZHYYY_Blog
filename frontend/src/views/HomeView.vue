@@ -122,13 +122,13 @@ const ic = {
           <h2>说说</h2>
           <span class="more">全部 →</span>
         </router-link>
-        <div v-for="s in latestShuo" :key="s.id" class="entry">
+        <router-link v-for="s in latestShuo" :key="s.id" to="/shuoshuo" class="entry">
           <span class="dot"></span>
           <div>
             <b class="shuo-text">{{ s.content }}</b>
             <small>{{ s.createdAt }}</small>
           </div>
-        </div>
+        </router-link>
         <p v-if="!latestShuo.length" class="empty">还没有说说</p>
       </section>
 
