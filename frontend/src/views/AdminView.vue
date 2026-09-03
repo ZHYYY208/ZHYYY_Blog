@@ -8,7 +8,7 @@ const authed = ref(false)
 const pwd = ref('')
 const err = ref('')
 const tab = ref('posts')
-const settings = ref({ motto: '', cfHandle: '', nowcoder: '', luogu: '', about: '' })
+const settings = ref({ motto: '', cfHandle: '', nowcoder: '', luogu: '', about: '', autoMusicId: '' })
 
 // ---------- 通用反馈 ----------
 const toast = ref('')
@@ -357,6 +357,7 @@ async function loadSettings() {
     settings.value.nowcoder = cfg.nowcoder || ''
     settings.value.luogu = cfg.luogu || ''
     settings.value.about = cfg.about || ''
+    settings.value.autoMusicId = cfg.autoMusicId || ''
   } catch {}
 }
 
@@ -368,6 +369,7 @@ async function saveSettings() {
       nowcoder: settings.value.nowcoder,
       luogu: settings.value.luogu,
       about: settings.value.about,
+      autoMusicId: settings.value.autoMusicId,
     })
     showToast('保存成功')
   } catch (e) {
@@ -591,6 +593,14 @@ function loadAll() {
             placeholder="写一段自我介绍，支持 Markdown，显示在关于页"
             class="input"
           ></textarea>
+        </div>
+
+        <div class="set-row">
+          <label class="lab">进站自动播放（选择一首歌，或「无」）</label>
+          <select v-model="settings.autoMusicId" class="input">
+            <option value="">无（不自动播放）</option>
+            <option v-for="m in musics" :key="m.id" :value="m.id">{{ m.title }} · {{ m.artist }}</option>
+          </select>
         </div>
 
         <h3 class="sub-h">算法战绩（首页展示）</h3>

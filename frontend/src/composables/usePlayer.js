@@ -92,6 +92,12 @@ function seek(e) {
   audio.currentTime = ratio * state.duration
 }
 
+async function playById(id) {
+  await load()
+  const idx = state.tracks.findIndex((t) => String(t.id) === String(id))
+  if (idx >= 0) playAt(idx)
+}
+
 export function usePlayer() {
-  return { state, load, toggle, next, prev, seek, playAt, fmt }
+  return { state, load, toggle, next, prev, seek, playAt, playById, fmt }
 }

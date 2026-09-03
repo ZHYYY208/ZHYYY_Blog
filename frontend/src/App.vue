@@ -3,6 +3,9 @@ import VirtualPet from './components/VirtualPet.vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { BLOG } from './config'
+import { usePlayer } from './composables/usePlayer'
+
+const { state, playById, load } = usePlayer()
 
 // 建站使用的技术栈（非知识树）
 const techStack = [
@@ -18,9 +21,32 @@ const clock = ref('')
 const route = useRoute()
 const isHome = computed(() => route.path === '/')
 let timer = null
+let autoTried = false
 
 function pad(n) {
   return String(n).padStart(2, '0')
+}
+
+async function tryAutoPlay() {
+  try {
+    const cfg = await (await fetch('/api/site')).json()
+    if (!cfg.autoMusicId) return
+    // 预加载歌单，保证自动播放/交互兜底不需要再等网络
+    await load()
+
+    const attempt = () => {
+      if (state.playing) return
+      playById(cfg.autoMusicId)
+    }
+    attempt() // 先直接试一次（部分浏览器允许无手势自动播）
+
+    // 若被拦截，用户第一次点击任意位置时再触发
+    const once = () => {
+      attempt()
+      window.removeEventListener('pointerdown', once)
+    }
+    window.addEventListener('pointerdown', once)
+  } catch {}
 }
 
 async function loadUptime() {
@@ -44,6 +70,7 @@ async function loadUptime() {
 
 onMounted(() => {
   loadUptime()
+  tryAutoPlay()
 })
 onBeforeUnmount(() => clearInterval(timer))
 </script>
