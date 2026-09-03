@@ -76,13 +76,13 @@ const ic = {
         <p class="motto">{{ motto }}</p>
         <div class="socials">
           <a v-for="s in socials" :key="s.name" :href="s.href" target="_blank" rel="noopener" :title="s.name">
-            <svg v-if="s.icon === 'google'" viewBox="0 0 24 24" width="15" height="15">
+            <svg v-if="s.icon === 'google'" viewBox="0 0 24 24" width="22" height="22">
               <path fill="#4285F4" d="M23.5 12.27c0-.79-.07-1.55-.2-2.28H12v4.32h6.46a5.5 5.5 0 0 1-2.39 3.61v3h3.87c2.26-2.09 3.56-5.17 3.56-8.65z"/>
               <path fill="#34A853" d="M12 24c3.24 0 5.96-1.08 7.94-2.91l-3.87-3c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.29v3.1A12 12 0 0 0 12 24z"/>
               <path fill="#FBBC05" d="M5.27 14.28a7.2 7.2 0 0 1 0-4.56v-3.1H1.29a12 12 0 0 0 0 10.76l3.98-3.1z"/>
               <path fill="#EA4335" d="M12 4.76c1.76 0 3.35.61 4.6 1.8l3.45-3.45A11.99 11.99 0 0 0 1.29 6.62l3.98 3.1C6.22 6.87 8.87 4.76 12 4.76z"/>
             </svg>
-            <svg v-else viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path :d="ic[s.icon]" /></svg>
+            <svg v-else viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path :d="ic[s.icon]" /></svg>
           </a>
         </div>
         <div class="stats">
@@ -211,11 +211,11 @@ const ic = {
   font-size: 18px;
 }
 .motto { margin: 0; color: var(--text); font-size: 12px; line-height: 1.5; max-width: 90%; }
-.socials { display: flex; gap: 6px; }
+.socials { display: flex; gap: 8px; justify-content: center; }
 .socials a {
-  width: 26px; height: 26px;
+  width: 40px; height: 40px;
   display: grid; place-items: center;
-  border-radius: 8px;
+  border-radius: 12px;
   color: var(--text);
   border: 1px solid var(--glass-border);
   transition: all 0.25s;

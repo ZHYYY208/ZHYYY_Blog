@@ -83,8 +83,16 @@ onMounted(() => {
 
 <template>
   <div>
-    <h1>留言板</h1>
-    <p class="notice">欢迎留言，一起交流～</p>
+    <div class="topbar">
+      <div>
+        <h1>留言板</h1>
+        <p class="notice">欢迎留言，一起交流～</p>
+      </div>
+      <div v-if="me" class="acct">
+        <span class="whoami">你好，{{ me.username }}</span>
+        <button class="ghost" @click="logout">退出登录</button>
+      </div>
+    </div>
 
     <!-- 未登录：登录/注册 -->
     <section v-if="!me" class="glass auth">
@@ -111,10 +119,7 @@ onMounted(() => {
 
     <!-- 已登录：发表 -->
     <section v-else class="glass composer">
-      <div class="who">
-        <b>{{ me.username }}</b>
-        <button class="ghost" @click="logout">退出</button>
-      </div>
+      <div class="who"><span class="as">以「{{ me.username }}」身份留言</span></div>
       <textarea v-model="content" rows="3" maxlength="1000" placeholder="想说点什么…"></textarea>
       <div class="agree">
         <RulesCheck v-model="agreed" />
@@ -150,8 +155,11 @@ onMounted(() => {
 </template>
 
 <style scoped>
-h1 { margin: 8px 0 6px; color: var(--text-h); }
-.notice { color: var(--text-muted); font-size: 13px; margin: 0 0 18px; }
+.topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.topbar h1 { margin: 0 0 4px; color: var(--text-h); }
+.notice { color: var(--text-muted); font-size: 13px; margin: 0; }
+.acct { display: flex; align-items: center; gap: 10px; padding-top: 6px; }
+.whoami { color: var(--accent); font-weight: 600; font-size: 14px; }
 
 .auth { max-width: 380px; padding: 24px 28px; display: flex; flex-direction: column; gap: 12px; }
 .tabs { display: flex; gap: 10px; margin-bottom: 4px; }
@@ -180,9 +188,11 @@ h1 { margin: 8px 0 6px; color: var(--text-h); }
 .primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .composer { padding: 20px 24px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
-.who { display: flex; align-items: center; justify-content: space-between; }
-.who b { color: var(--accent); font-size: 16px; }
-.ghost { border: 1px solid var(--glass-border); background: transparent; color: var(--text); border-radius: 999px; padding: 4px 14px; cursor: pointer; }
+.who { display: flex; align-items: center; }
+.who .as { color: var(--text-muted); font-size: 13px; }
+.who .as b { color: var(--accent); }
+.ghost { border: 1px solid var(--glass-border); background: transparent; color: var(--text); border-radius: 999px; padding: 5px 16px; cursor: pointer; }
+.ghost:hover { color: var(--accent); border-color: var(--accent); }
 .composer textarea {
   border: 1px solid var(--glass-border); border-radius: 10px; background: rgba(255,255,255,.5);
   color: var(--text-h); padding: 10px 12px; font: inherit; outline: none; resize: vertical;

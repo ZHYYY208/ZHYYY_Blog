@@ -8,7 +8,7 @@ const authed = ref(false)
 const pwd = ref('')
 const err = ref('')
 const tab = ref('posts')
-const settings = ref({ motto: '', cfHandle: '', atcoderHandle: '', nowcoder: '', luogu: '', about: '', autoMusicId: '' })
+const settings = ref({ motto: '', cfHandle: '', nowcoder: '', luogu: '', about: '', autoMusicId: '' })
 
 // ---------- 通用反馈 ----------
 const toast = ref('')
@@ -359,7 +359,6 @@ async function loadSettings() {
     const cfg = await api.get('/site')
     settings.value.motto = cfg.motto || ''
     settings.value.cfHandle = cfg.cfHandle || ''
-    settings.value.atcoderHandle = cfg.atcoderHandle || ''
     settings.value.nowcoder = cfg.nowcoder || ''
     settings.value.luogu = cfg.luogu || ''
     settings.value.about = cfg.about || ''
@@ -372,7 +371,6 @@ async function saveSettings() {
     await api.put('/site', {
       motto: settings.value.motto,
       cfHandle: settings.value.cfHandle,
-      atcoderHandle: settings.value.atcoderHandle,
       nowcoder: settings.value.nowcoder,
       luogu: settings.value.luogu,
       about: settings.value.about,
@@ -703,10 +701,6 @@ function loadAll() {
         <div class="set-row">
           <label class="lab">Codeforces Handle（自动拉取 Rating）</label>
           <input v-model="settings.cfHandle" placeholder="如 tourist" class="input" />
-        </div>
-        <div class="set-row">
-          <label class="lab">AtCoder Handle（跳转个人主页）</label>
-          <input v-model="settings.atcoderHandle" placeholder="如 ZHHHY_CN" class="input" />
         </div>
         <div class="set-row">
           <label class="lab">牛客主页链接（仅跳转用，不公开显示）</label>

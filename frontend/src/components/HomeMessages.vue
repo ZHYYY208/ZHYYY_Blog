@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { userApi, isUserLoggedIn } from '../api'
+import { userApi, isUserLoggedIn, clearUserSession } from '../api'
 import RulesCheck from './RulesCheck.vue'
 
 const me = ref(null)
@@ -43,6 +43,14 @@ async function send() {
   }
 }
 
+function logout() {
+  userApi.logout().catch(() => {})
+  clearUserSession()
+  me.value = null
+  content.value = ''
+  agreed.value = false
+}
+
 onMounted(() => {
   loadMe()
   loadMsgs()
@@ -58,7 +66,10 @@ onMounted(() => {
 
     <!-- 快捷发言 -->
     <div v-if="me" class="composer">
-      <div class="who"><b>{{ me.username }}</b></div>
+      <div class="who">
+        <b>{{ me.username }}</b>
+        <button class="logout-btn" @click="logout">退出</button>
+      </div>
       <textarea v-model="content" rows="2" maxlength="1000" placeholder="说点什么…"></textarea>
       <div class="agree">
         <RulesCheck v-model="agreed" />
@@ -96,7 +107,18 @@ onMounted(() => {
 .more { font-size: 13px; color: var(--text-muted); text-decoration: none; }
 
 .composer { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px dashed var(--glass-border); }
+.who { display: flex; align-items: center; justify-content: space-between; }
 .who b { color: var(--accent); font-size: 14px; }
+.logout-btn {
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text);
+  border-radius: 999px;
+  padding: 3px 14px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.logout-btn:hover { color: var(--accent); border-color: var(--accent); }
 textarea {
   border: 1px solid var(--glass-border); border-radius: 10px;
   background: rgba(255,255,255,.5); color: var(--text-h);

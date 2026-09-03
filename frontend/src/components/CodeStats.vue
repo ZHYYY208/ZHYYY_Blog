@@ -7,13 +7,12 @@ const cf = ref(null)
 const cfErr = ref(false)
 const loaded = ref(false)
 
-const imgErr = reactive({ cf: false, lg: false, nc: false, ac: false })
+const imgErr = reactive({ cf: false, lg: false, nc: false })
 
 const LOGOS = {
   cf: 'https://codeforces.com/favicon.ico',
   lg: 'https://www.luogu.com.cn/favicon.ico',
   nc: 'https://ac.nowcoder.com/favicon.ico',
-  ac: 'https://atcoder.jp/favicon.ico',
 }
 
 const COLORS = {
@@ -129,20 +128,7 @@ function nowcoderId() {
         <a :href="nowcoderId() ? `https://ac.nowcoder.com/acm/contest/profile/${nowcoderId()}` : '#'" target="_blank" rel="noopener" class="go">去看看 →</a>
       </div>
 
-      <!-- AtCoder -->
-      <div class="cell" v-if="cfg.atcoderHandle">
-        <span class="logo ac">
-          <img v-if="!imgErr.ac" :src="LOGOS.ac" alt="" @error="imgErr.ac = true" />
-          <template v-else>AtCoder</template>
-        </span>
-        <div class="info">
-          <b>{{ cfg.atcoderHandle }}</b>
-          <span class="detail">AtCoder 主页</span>
-        </div>
-        <a :href="`https://atcoder.jp/users/${encodeURIComponent(cfg.atcoderHandle)}`" target="_blank" rel="noopener" class="go">去看看 →</a>
-      </div>
-
-      <div class="cell empty" v-if="!cfg.cfHandle && !cfg.luogu && !cfg.nowcoder && !cfg.atcoderHandle">
+      <div class="cell empty" v-if="!cfg.cfHandle && !cfg.luogu && !cfg.nowcoder">
         <span>后台「网站设置」填好平台账号后自动显示</span>
       </div>
     </div>
@@ -160,26 +146,27 @@ function nowcoderId() {
 .head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
 .head h2 { margin: 0; font-size: 14px; color: var(--text-h); }
 .sub { color: var(--text-muted); font-size: 11px; }
-.grid { display: flex; flex-direction: column; gap: 6px; flex: 1; justify-content: center; }
+.grid { display: flex; flex-direction: column; gap: 8px; flex: 1; }
 
 .cell {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
+  gap: 14px;
+  padding: 6px 12px;
   border: 1px solid var(--glass-border);
-  border-radius: 10px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.35);
 }
 .logo {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   display: grid;
   place-items: center;
   color: #fff;
   font-weight: 800;
-  font-size: 11px;
+  font-size: 13px;
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -187,12 +174,11 @@ function nowcoderId() {
 .cf { background: #1f8acb; }
 .lg { background: #e91e63; }
 .nc { background: #2db55d; }
-.ac { background: #444; }
-.info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.info b { color: var(--text-h); font-size: 13px; }
-.rating { font-weight: 800; font-size: 14px; }
-.detail { color: var(--text-muted); font-size: 11px; }
+.info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.info b { color: var(--text-h); font-size: 15px; }
+.rating { font-weight: 800; font-size: 15px; }
+.detail { color: var(--text-muted); font-size: 12px; }
 .err { color: #ef4444; }
-.go { font-size: 12px; color: var(--accent); flex-shrink: 0; }
+.go { font-size: 13px; color: var(--accent); flex-shrink: 0; }
 .empty { justify-content: center; color: var(--text-muted); font-size: 12px; }
 </style>
