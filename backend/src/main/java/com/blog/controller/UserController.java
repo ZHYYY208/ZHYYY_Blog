@@ -35,8 +35,26 @@ public class UserController {
     public ResponseEntity<?> adminList(@RequestHeader(value = "X-Admin-Token", required = false) String tok) {
         if (!isAdmin(tok)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         return ResponseEntity.ok(repo.findAll().stream()
-                .map(u -> Map.of("id", u.getId(), "username", u.getUsername(), "createdAt", u.getCreatedAt()))
+                .map(u -> Map.of("id", u.getId(), "username", u.getUsername(), "role", u.getRole(), "createdAt", u.getCreatedAt()))
                 .toList());
+    }
+
+    @PutMapping("/admin/{id}/profile")
+    public ResponseEntity<?> adminProfile(@PathVariable Long id,
+                                          @RequestHeader(value = "X-Admin-Token", required = false) String tok,
+                                          @RequestBody Map<String, String> body) {
+        if (!isAdmin(tok)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        User u = repo.findById(id);
+        if (u == null) return ResponseEntity.notFound().build();
+        String username = body.getOrDefault("username", u.getUsername()).trim();
+        String role = body.getOrDefault("role", u.getRole() == null ? "user" : u.getRole());
+        if (username.length() < 2) return ResponseEntity.badRequest().body(Map.of("error", "昵称太短"));
+        User dup = repo.findByUsername(username);
+        if (dup != null && !dup.getId().equals(id)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "用户名已被占用"));
+        }
+        repo.updateProfile(id, username, role);
+        return ResponseEntity.ok(Map.of("ok", true));
     }
 
     @PutMapping("/admin/{id}/password")
@@ -121,6 +139,7 @@ public class UserController {
         Map<String, Object> m = new HashMap<>();
         m.put("id", u.getId());
         m.put("username", u.getUsername());
+        m.put("role", u.getRole() == null ? "user" : u.getRole());
         m.put("createdAt", u.getCreatedAt());
         if (token != null) m.put("token", token);
         return m;

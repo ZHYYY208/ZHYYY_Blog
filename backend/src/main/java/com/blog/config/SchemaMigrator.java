@@ -33,6 +33,12 @@ public class SchemaMigrator implements ApplicationRunner {
             if (!hasColumn("shuoshuo", "images")) {
                 jdbc.execute("ALTER TABLE shuoshuo ADD COLUMN images TEXT NOT NULL DEFAULT '[]'");
             }
+            if (!hasColumn("users", "role")) {
+                jdbc.execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'");
+            }
+            if (!hasColumn("messages", "role")) {
+                jdbc.execute("ALTER TABLE messages ADD COLUMN role TEXT NOT NULL DEFAULT 'user'");
+            }
             // 旧版 photos.category(文本) → photo_categories 表 + category_id
             if (!hasColumn("photos", "category_id")) {
                 jdbc.execute("ALTER TABLE photos ADD COLUMN category_id INTEGER");

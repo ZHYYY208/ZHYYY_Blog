@@ -17,18 +17,21 @@ public class MessageRepository {
 
     public List<Message> findAll() {
         return jdbc.query(
-                "SELECT id, user_id, username, content, created_at FROM messages ORDER BY id DESC",
+                "SELECT id, user_id, username, role, content, created_at FROM messages ORDER BY id DESC",
                 (rs, i) -> new Message(
                         rs.getLong("id"),
                         rs.getLong("user_id"),
                         rs.getString("username"),
+                        rs.getString("role"),
                         rs.getString("content"),
                         rs.getString("created_at")));
     }
 
     public Message save(Message m) {
-        jdbc.update("INSERT INTO messages (user_id, username, content, created_at) VALUES (?, ?, ?, ?)",
-                m.getUserId(), m.getUsername(), m.getContent(), m.getCreatedAt());
+        jdbc.update("INSERT INTO messages (user_id, username, role, content, created_at) VALUES (?, ?, ?, ?, ?)",
+                m.getUserId(), m.getUsername(),
+                m.getRole() == null ? "user" : m.getRole(),
+                m.getContent(), m.getCreatedAt());
         Long id = jdbc.queryForObject("SELECT last_insert_rowid()", Long.class);
         m.setId(id);
         return m;

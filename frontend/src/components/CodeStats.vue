@@ -152,34 +152,34 @@ function nowcoderId() {
 <style scoped>
 .stats-card {
   flex: 1;
-  padding: 20px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
 }
-.head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
-.head h2 { margin: 0; font-size: 17px; color: var(--text-h); }
-.sub { color: var(--text-muted); font-size: 12px; }
-.grid { display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: center; }
+.head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.head h2 { margin: 0; font-size: 14px; color: var(--text-h); }
+.sub { color: var(--text-muted); font-size: 11px; }
+.grid { display: flex; flex-direction: column; gap: 6px; flex: 1; justify-content: center; }
 
 .cell {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 10px 14px;
+  gap: 10px;
+  padding: 6px 10px;
   border: 1px solid var(--glass-border);
-  border-radius: 14px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.35);
 }
 .logo {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
   color: #fff;
   font-weight: 800;
-  font-size: 13px;
+  font-size: 11px;
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -188,11 +188,11 @@ function nowcoderId() {
 .lg { background: #e91e63; }
 .nc { background: #2db55d; }
 .ac { background: #444; }
-.info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.info b { color: var(--text-h); font-size: 15px; }
-.rating { font-weight: 800; font-size: 17px; }
-.detail { color: var(--text-muted); font-size: 12px; }
+.info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.info b { color: var(--text-h); font-size: 13px; }
+.rating { font-weight: 800; font-size: 14px; }
+.detail { color: var(--text-muted); font-size: 11px; }
 .err { color: #ef4444; }
-.go { font-size: 13px; color: var(--accent); flex-shrink: 0; }
-.empty { justify-content: center; color: var(--text-muted); font-size: 13px; }
+.go { font-size: 12px; color: var(--accent); flex-shrink: 0; }
+.empty { justify-content: center; color: var(--text-muted); font-size: 12px; }
 </style>

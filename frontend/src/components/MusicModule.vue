@@ -101,14 +101,14 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 20px;
+  gap: 7px;
+  padding: 14px 14px;
   height: 100%;
   box-sizing: border-box;
 }
 .disc {
-  width: 78px;
-  height: 78px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   cursor: pointer;
   display: grid;
@@ -128,13 +128,13 @@ onMounted(() => {
 @keyframes rot { to { transform: rotate(360deg); } }
 
 .meta { text-align: center; cursor: pointer; min-width: 0; }
-.meta strong { color: var(--text-h); font-size: 16px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.meta span { color: var(--text-muted); font-size: 12px; }
+.meta strong { color: var(--text-h); font-size: 14px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.meta span { color: var(--text-muted); font-size: 11px; }
 
-.ctl { display: flex; align-items: center; gap: 10px; }
+.ctl { display: flex; align-items: center; gap: 8px; }
 .cbtn {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: none;
   cursor: pointer;
@@ -143,7 +143,7 @@ onMounted(() => {
   display: grid;
   place-items: center;
 }
-.cbtn.big { width: 46px; height: 46px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; }
+.cbtn.big { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; }
 .cbtn:hover { transform: scale(1.08); }
 
 .prog { width: 100%; height: 14px; display: flex; align-items: center; cursor: pointer; }

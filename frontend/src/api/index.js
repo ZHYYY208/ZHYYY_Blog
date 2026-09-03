@@ -55,8 +55,37 @@ export async function upload(path, file, field = 'file', extra = {}) {
 }
 
 // ---------- 留言用户系统（独立于 admin） ----------
+const USER_TOKEN_KEY = 'user_token'
+const USER_NAME_KEY = 'user_name'
+const USER_EXPIRE_KEY = 'user_expire'
+const USER_TTL = 5 * 24 * 3600 * 1000 // 5 天
+
+export function setUserSession(token, name) {
+  localStorage.setItem(USER_TOKEN_KEY, token)
+  if (name) localStorage.setItem(USER_NAME_KEY, name)
+  localStorage.setItem(USER_EXPIRE_KEY, String(Date.now() + USER_TTL))
+}
+
+export function clearUserSession() {
+  localStorage.removeItem(USER_TOKEN_KEY)
+  localStorage.removeItem(USER_NAME_KEY)
+  localStorage.removeItem(USER_EXPIRE_KEY)
+}
+
+export function isUserLoggedIn() {
+  const t = localStorage.getItem(USER_TOKEN_KEY)
+  if (!t) return false
+  const exp = Number(localStorage.getItem(USER_EXPIRE_KEY) || 0)
+  if (!exp || Date.now() > exp) {
+    clearUserSession()
+    return false
+  }
+  return true
+}
+
 function userToken() {
-  return localStorage.getItem('user_token') || ''
+  if (!isUserLoggedIn()) return ''
+  return localStorage.getItem(USER_TOKEN_KEY) || ''
 }
 
 async function uReq(path, options = {}, needAuth = false) {
@@ -66,8 +95,7 @@ async function uReq(path, options = {}, needAuth = false) {
   const res = await fetch(`${BASE}${path}`, { headers, ...options })
   if (res.status === 401) {
     if (needAuth) {
-      localStorage.removeItem('user_token')
-      localStorage.removeItem('user_name')
+      clearUserSession()
     }
     const err = new Error('UNAUTHORIZED')
     err.status = 401

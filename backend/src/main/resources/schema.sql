@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS users (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     username   TEXT NOT NULL UNIQUE,
     pass_hash  TEXT NOT NULL,
+    role       TEXT NOT NULL DEFAULT 'user',
     created_at TEXT NOT NULL
 );
 
@@ -59,6 +60,7 @@ CREATE TABLE IF NOT EXISTS messages (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id    INTEGER NOT NULL,
     username   TEXT NOT NULL,
+    role       TEXT NOT NULL DEFAULT 'user',
     content    TEXT NOT NULL,
     created_at TEXT NOT NULL
 );

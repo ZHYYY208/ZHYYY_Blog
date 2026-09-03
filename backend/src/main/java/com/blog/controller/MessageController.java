@@ -56,6 +56,7 @@ public class MessageController {
         Message m = new Message();
         m.setUserId(uid);
         m.setUsername(u.getUsername());
+        m.setRole(u.getRole());
         m.setContent(content);
         m.setCreatedAt(TimeUtil.now());
         repo.save(m);

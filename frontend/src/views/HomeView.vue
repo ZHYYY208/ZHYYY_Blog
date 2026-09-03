@@ -4,6 +4,7 @@ import { api } from '../api'
 import { BLOG } from '../config'
 import CodeStats from '../components/CodeStats.vue'
 import MusicModule from '../components/MusicModule.vue'
+import HomeMessages from '../components/HomeMessages.vue'
 
 const counts = ref({ posts: 0, shuoshuo: 0, photos: 0, music: 0 })
 const latestPosts = ref([])
@@ -145,8 +146,12 @@ const ic = {
         </a>
         <p v-if="!repos.length" class="empty">填好 GitHub 用户名后展示</p>
       </section>
+    </div>
 
-      <section class="glass panel wide">
+    <!-- 留言板 + 相册 并排 -->
+    <div class="media-row">
+      <HomeMessages class="media-cell" />
+      <section class="glass panel media-cell">
         <router-link to="/photos" class="panel-head">
           <h2>相册</h2>
           <span class="more">进入 →</span>
@@ -168,14 +173,14 @@ const ic = {
 </template>
 
 <style scoped>
-.dash { display: flex; flex-direction: column; gap: 10px; }
-.empty { color: var(--text-muted); font-size: 14px; margin: 4px 0; }
+.dash { display: flex; flex-direction: column; gap: 8px; }
+.empty { color: var(--text-muted); font-size: 13px; margin: 4px 0; }
 
 /* 顶部三卡等高 */
 .top-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
   align-items: stretch;
 }
 .top-row > * { min-width: 0; }
@@ -188,29 +193,29 @@ const ic = {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 24px 20px;
+  gap: 8px;
+  padding: 16px 16px;
   text-align: center;
 }
 .avatar {
-  width: 92px;
-  height: 92px;
-  border-radius: 28px;
+  width: 76px;
+  height: 76px;
+  border-radius: 22px;
   object-fit: cover;
   border: 1px solid var(--glass-border);
-  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
 }
 .p-name {
   font-weight: 800;
   color: var(--text-h);
-  font-size: 20px;
+  font-size: 18px;
 }
-.motto { margin: 0; color: var(--text); font-size: 13px; line-height: 1.6; max-width: 90%; }
-.socials { display: flex; gap: 8px; }
+.motto { margin: 0; color: var(--text); font-size: 12px; line-height: 1.5; max-width: 90%; }
+.socials { display: flex; gap: 6px; }
 .socials a {
-  width: 30px; height: 30px;
+  width: 26px; height: 26px;
   display: grid; place-items: center;
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--text);
   border: 1px solid var(--glass-border);
   transition: all 0.25s;
@@ -219,57 +224,69 @@ const ic = {
 .stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: 4px;
   width: 100%;
   border-top: 1px solid var(--glass-border);
-  margin-top: 6px;
-  padding-top: 14px;
+  margin-top: 4px;
+  padding-top: 10px;
 }
-.stat { display: flex; flex-direction: column; align-items: center; gap: 3px; text-decoration: none; color: var(--text); }
-.stat b { font-size: 18px; color: var(--text-h); }
-.stat span { font-size: 10px; color: var(--text-muted); }
+.stat { display: flex; flex-direction: column; align-items: center; gap: 2px; text-decoration: none; color: var(--text); }
+.stat b { font-size: 15px; color: var(--text-h); }
+.stat span { font-size: 9px; color: var(--text-muted); }
 .stat:hover b { color: var(--accent); }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
-.panel { padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; transition: transform 0.25s; }
+.panel { padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; transition: transform 0.25s; }
 .panel:hover { transform: translateY(-3px); }
 .panel.wide { grid-column: 1 / -1; }
 .panel-head {
   display: flex; align-items: center; justify-content: space-between;
   text-decoration: none;
 }
-.panel-head h2 { margin: 0; font-size: 16px; color: var(--text-h); }
-.more { font-size: 12px; color: var(--text-muted); }
+.panel-head h2 { margin: 0; font-size: 15px; color: var(--text-h); }
+.more { font-size: 11px; color: var(--text-muted); }
 .panel-head:hover .more { color: var(--accent); }
 .panel-head:hover h2 { color: var(--accent); }
 
 .entry {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 8px;
   text-decoration: none; color: var(--text);
-  padding: 5px 8px; border-radius: 10px;
+  padding: 3px 6px; border-radius: 8px;
   transition: background 0.2s;
 }
 .entry:hover { background: var(--accent-bg); }
-.entry .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 4px; }
-.entry div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.entry b { color: var(--text-h); font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.entry .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 4px; }
+.entry div { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.entry b { color: var(--text-h); font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .shuo-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.entry small { color: var(--text-muted); font-size: 11px; }
+.entry small { color: var(--text-muted); font-size: 10px; }
 
-.ph-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; min-height: 110px; }
-.ph { width: 100%; height: 150px; object-fit: cover; border-radius: 12px; border: 1px solid var(--glass-border); }
-.ph-empty { grid-column: 1 / -1; color: var(--text-muted); font-size: 14px; display: grid; place-items: center; }
+.ph-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; min-height: 90px; }
+.ph { width: 100%; height: 110px; object-fit: cover; border-radius: 10px; border: 1px solid var(--glass-border); }
+.ph-empty { grid-column: 1 / -1; color: var(--text-muted); font-size: 13px; display: grid; place-items: center; }
+
+/* 留言 + 相册 并排 */
+.media-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: stretch;
+}
+.media-cell { margin: 0; min-width: 0; height: 100%; box-sizing: border-box; }
+.media-row :deep(.msg-mod) { height: 100%; }
+.media-row .ph-grid { grid-template-columns: repeat(2, 1fr); min-height: 0; }
+.media-row .ph { height: 120px; }
 
 @media (max-width: 900px) {
   .top-row { grid-template-columns: 1fr; }
   .grid { grid-template-columns: 1fr; }
   .panel.wide { grid-column: auto; }
   .profile { flex-direction: column; align-items: flex-start; }
-  .p-right { width: 100%; }
+  .media-row { grid-template-columns: 1fr; }
   .ph-grid { grid-template-columns: repeat(2, 1fr); }
 }
 </style>

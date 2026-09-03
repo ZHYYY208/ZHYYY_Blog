@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { userApi } from '../api'
+import { userApi, setUserSession, clearUserSession, isUserLoggedIn } from '../api'
+import RulesCheck from '../components/RulesCheck.vue'
 
 const me = ref(null)
 const mode = ref('login') // login | register
@@ -10,12 +11,9 @@ const msgs = ref([])
 const content = ref('')
 const agreed = ref(false)
 const sending = ref(false)
-const notice = ref(
-  '发言前请先阅读：请遵守中华人民共和国的法律法规，文明用语，友善交流；禁止发布违法、色情、暴力、辱骂、谣言、广告等不当内容。发言即视为同意以上规范，违规内容站长有权删除。'
-)
 
 async function loadMe() {
-  if (!localStorage.getItem('user_token')) return
+  if (!isUserLoggedIn()) return
   try {
     me.value = await userApi.me()
   } catch {
@@ -41,17 +39,11 @@ async function submit() {
     return
   }
   try {
-    if (mode.value === 'login') {
-      const r = await userApi.login(form.value.username, form.value.password)
-      localStorage.setItem('user_token', r.token)
-      localStorage.setItem('user_name', r.username)
-      me.value = { username: r.username, token: r.token }
-    } else {
-      const r = await userApi.register(form.value.username, form.value.password)
-      localStorage.setItem('user_token', r.token)
-      localStorage.setItem('user_name', r.username)
-      me.value = { username: r.username, token: r.token }
-    }
+    const r = mode.value === 'login'
+      ? await userApi.login(form.value.username, form.value.password)
+      : await userApi.register(form.value.username, form.value.password)
+    setUserSession(r.token, r.username)
+    me.value = { id: r.id, username: r.username, role: r.role || 'user' }
     form.value = { username: '', password: '' }
   } catch (e) {
     err.value = e.message
@@ -60,8 +52,7 @@ async function submit() {
 
 function logout() {
   userApi.logout().catch(() => {})
-  localStorage.removeItem('user_token')
-  localStorage.removeItem('user_name')
+  clearUserSession()
   me.value = null
 }
 
@@ -126,7 +117,7 @@ onMounted(() => {
       </div>
       <textarea v-model="content" rows="3" maxlength="1000" placeholder="想说点什么…"></textarea>
       <div class="agree">
-        <label><input type="checkbox" v-model="agreed" /> 我已阅读并同意留言规范</label>
+        <RulesCheck v-model="agreed" />
       </div>
       <p v-if="err" class="err">{{ err }}</p>
       <div class="row">
@@ -141,7 +132,8 @@ onMounted(() => {
       <div v-for="m in msgs" :key="m.id" class="glass msg">
         <div class="msg-head">
           <b>{{ m.username }}</b>
-          <span>{{ m.createdAt }}</span>
+          <span v-if="m.role === 'owner'" class="badge">站长</span>
+          <span class="dt">{{ m.createdAt }}</span>
         </div>
         <p class="msg-body">{{ m.content }}</p>
       </div>
@@ -149,7 +141,7 @@ onMounted(() => {
     </section>
 
     <!-- 须知/免责声明 -->
-    <footer class="legal">留言须知：{{ notice }}</footer>
+    <footer class="legal">免责声明：请遵守国家法律法规，文明友善发言，违规内容站长有权删除。详细条款见上方「留言规范」。</footer>
   </div>
 </template>
 
@@ -196,11 +188,27 @@ h1 { margin: 8px 0 6px; color: var(--text-h); }
 
 .list { display: flex; flex-direction: column; gap: 12px; }
 .msg { padding: 16px 20px; }
-.msg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.msg-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .msg-head b { color: var(--accent); }
-.msg-head span { color: var(--text-muted); font-size: 12px; }
+.badge {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  font-size: 11px;
+  border-radius: 999px;
+  padding: 1px 10px;
+  flex-shrink: 0;
+}
+.dt { margin-left: auto; color: var(--text-muted); font-size: 12px; flex-shrink: 0; }
 .msg-body { margin: 0; color: var(--text-h); white-space: pre-wrap; word-break: break-word; }
-.hint { color: var(--text-muted); }
+.hint { color: var(--text); opacity: 0.85; text-align: center; padding: 8px 0; }
 
-.legal { margin-top: 18px; font-size: 11px; color: var(--text-muted); line-height: 1.7; border-top: 1px dashed var(--glass-border); padding-top: 10px; }
+.legal {
+  margin-top: 18px;
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0.9;
+  line-height: 1.8;
+  border-top: 1px solid var(--glass-border);
+  padding-top: 10px;
+}
 </style>
