@@ -61,24 +61,27 @@ onMounted(() => {
     <!-- 歌单 -->
     <div class="glass list-card">
       <div class="list-head">播放列表 <span v-if="state.tracks.length">· {{ state.tracks.length }} 首</span></div>
-      <div
-        v-for="(t, i) in state.tracks"
-        :key="t.id"
-        class="row-item"
-        :class="{ active: i === state.index }"
-        @click="toggle(i)"
-      >
-        <span class="idx">
-          <template v-if="i === state.index">
-            <svg v-if="state.playing" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
-            <svg v-else viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
-          </template>
-          <template v-else>{{ i + 1 }}</template>
-        </span>
-        <div class="info">
-          <strong>{{ t.title }}</strong>
-          <span class="meta">{{ t.artist }}</span>
+      <div class="list-scroll">
+        <div
+          v-for="(t, i) in state.tracks"
+          :key="t.id"
+          class="row-item"
+          :class="{ active: i === state.index }"
+          @click="toggle(i)"
+        >
+          <span class="idx">
+            <template v-if="i === state.index">
+              <svg v-if="state.playing" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
+              <svg v-else viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+            </template>
+            <template v-else>{{ i + 1 }}</template>
+          </span>
+          <div class="info">
+            <strong>{{ t.title }}</strong>
+            <span class="meta">{{ t.artist }}</span>
+          </div>
         </div>
+        <div v-if="!state.tracks.length" class="hint list-empty">暂无歌曲</div>
       </div>
     </div>
   </div>
@@ -196,8 +199,18 @@ onMounted(() => {
 }
 
 /* ===== 歌单模块 ===== */
-.list-card { padding: 8px; }
-.list-head { padding: 10px 16px; font-weight: 800; color: var(--text-h); font-size: 15px; }
+.list-card { padding: 8px; display: flex; flex-direction: column; }
+.list-head { padding: 10px 16px; font-weight: 800; color: var(--text-h); font-size: 15px; flex-shrink: 0; }
+.list-scroll {
+  height: 46vh;
+  min-height: 180px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.list-scroll::-webkit-scrollbar { width: 6px; }
+.list-scroll::-webkit-scrollbar-thumb { background: var(--accent-bg); border-radius: 999px; }
+.list-scroll::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+.list-empty { padding: 12px 16px; }
 .row-item {
   display: flex;
   gap: 14px;
@@ -234,5 +247,6 @@ onMounted(() => {
   .ctrl-btn.big { width: 56px; height: 56px; }
   .list-card { padding: 6px; }
   .row-item { padding: 10px 12px; }
+  .list-scroll { height: 40vh; }
 }
 </style>
