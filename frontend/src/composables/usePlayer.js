@@ -2,6 +2,7 @@ import { reactive } from 'vue'
 import { api } from '../api'
 
 let audio = null
+let preloadAudio = null
 let listenersBound = false
 
 const state = reactive({
@@ -11,6 +12,7 @@ const state = reactive({
   playing: false,
   time: 0,
   duration: 0,
+  buffering: false,
 })
 
 function syncTime() {
@@ -26,11 +28,29 @@ function onEnded() {
 function ensureAudio() {
   if (audio) return audio
   audio = new Audio()
+  audio.preload = 'auto'
   audio.addEventListener('timeupdate', syncTime)
   audio.addEventListener('loadedmetadata', syncTime)
   audio.addEventListener('durationchange', syncTime)
   audio.addEventListener('ended', onEnded)
   return audio
+}
+
+// 预热某首歌，让鼠标悬停后就缓冲，点击播放时几乎立即出声
+function preload(url) {
+  try {
+    if (!url) return
+    if (preloadAudio && preloadAudio.dataset.url === url) return
+    if (!preloadAudio) {
+      preloadAudio = new Audio()
+      preloadAudio.preload = 'auto'
+    }
+    if (preloadAudio.dataset.url !== url) {
+      preloadAudio.dataset.url = url
+      preloadAudio.src = url
+      preloadAudio.load()
+    }
+  } catch {}
 }
 
 export function fmt(s) {
@@ -45,6 +65,11 @@ async function load() {
   try {
     state.tracks = await api.get('/music')
     state.loaded = true
+    // 无播放时预载第一首，让点击首曲几乎立即出声
+    if (state.tracks.length) {
+      const first = state.tracks[0]
+      if (first && first.url) preload(first.url)
+    }
   } catch {
     state.tracks = []
     state.loaded = true
@@ -99,5 +124,5 @@ async function playById(id) {
 }
 
 export function usePlayer() {
-  return { state, load, toggle, next, prev, seek, playAt, playById, fmt }
+  return { state, load, toggle, next, prev, seek, playAt, playById, preload, fmt }
 }

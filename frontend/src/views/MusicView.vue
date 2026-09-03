@@ -2,10 +2,14 @@
 import { onMounted, computed } from 'vue'
 import { usePlayer } from '../composables/usePlayer'
 
-const { state, load, toggle, next, prev, seek, fmt } = usePlayer()
+const { state, load, toggle, next, prev, seek, fmt, preload } = usePlayer()
 const error = ''
 
 const track = computed(() => state.tracks[state.index])
+
+function onHover(t) {
+  if (t && t.url) preload(t.url)
+}
 
 onMounted(() => {
   load().catch(() => {})
@@ -67,6 +71,7 @@ onMounted(() => {
           :key="t.id"
           class="row-item"
           :class="{ active: i === state.index }"
+          @mouseenter="onHover(t)"
           @click="toggle(i)"
         >
           <span class="idx">

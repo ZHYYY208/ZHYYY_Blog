@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { usePlayer } from '../composables/usePlayer'
 
-const { state, load, toggle, next, prev, seek, fmt, playAt } = usePlayer()
+const { state, load, toggle, next, prev, seek, fmt, playAt, preload } = usePlayer()
 
 const track = computed(() => state.tracks[state.index])
 const hasSelection = computed(() => state.index >= 0)
@@ -79,6 +79,7 @@ onMounted(() => {
               :key="t.id"
               class="li"
               :class="{ cur: i === state.index }"
+              @mouseenter="preload(t.url)"
               @click="pick(i)"
             >
               <span class="n">{{ i === state.index ? '♪' : i + 1 }}</span>
