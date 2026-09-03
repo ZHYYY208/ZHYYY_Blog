@@ -7,12 +7,13 @@ const cf = ref(null)
 const cfErr = ref(false)
 const loaded = ref(false)
 
-const imgErr = reactive({ cf: false, lg: false, nc: false })
+const imgErr = reactive({ cf: false, lg: false, nc: false, ac: false })
 
 const LOGOS = {
   cf: 'https://codeforces.com/favicon.ico',
   lg: 'https://www.luogu.com.cn/favicon.ico',
   nc: 'https://ac.nowcoder.com/favicon.ico',
+  ac: 'https://atcoder.jp/favicon.ico',
 }
 
 const COLORS = {
@@ -128,8 +129,21 @@ function nowcoderId() {
         <a :href="nowcoderId() ? `https://ac.nowcoder.com/acm/contest/profile/${nowcoderId()}` : '#'" target="_blank" rel="noopener" class="go">去看看 →</a>
       </div>
 
-      <div class="cell empty" v-if="!cfg.cfHandle && !cfg.luogu && !cfg.nowcoder">
-        <span>后台「网站设置」填好三个平台后自动显示</span>
+      <!-- AtCoder -->
+      <div class="cell" v-if="cfg.atcoderHandle">
+        <span class="logo ac">
+          <img v-if="!imgErr.ac" :src="LOGOS.ac" alt="" @error="imgErr.ac = true" />
+          <template v-else>AtCoder</template>
+        </span>
+        <div class="info">
+          <b>{{ cfg.atcoderHandle }}</b>
+          <span class="detail">AtCoder 主页</span>
+        </div>
+        <a :href="`https://atcoder.jp/users/${encodeURIComponent(cfg.atcoderHandle)}`" target="_blank" rel="noopener" class="go">去看看 →</a>
+      </div>
+
+      <div class="cell empty" v-if="!cfg.cfHandle && !cfg.luogu && !cfg.nowcoder && !cfg.atcoderHandle">
+        <span>后台「网站设置」填好平台账号后自动显示</span>
       </div>
     </div>
   </div>
@@ -173,6 +187,7 @@ function nowcoderId() {
 .cf { background: #1f8acb; }
 .lg { background: #e91e63; }
 .nc { background: #2db55d; }
+.ac { background: #444; }
 .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .info b { color: var(--text-h); font-size: 15px; }
 .rating { font-weight: 800; font-size: 17px; }

@@ -92,6 +92,7 @@ onBeforeUnmount(() => clearInterval(timer))
         <router-link to="/photos">相册</router-link>
         <router-link to="/music">音乐</router-link>
         <router-link to="/projects">项目</router-link>
+        <router-link to="/messages">留言</router-link>
         <router-link to="/about">关于</router-link>
       </nav>
     </header>

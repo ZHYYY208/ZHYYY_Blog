@@ -12,6 +12,7 @@ const routes = [
   { path: '/post/:id', name: 'post', component: () => import('../views/PostView.vue'), meta: { title: '文章' } },
   { path: '/admin', name: 'admin', component: () => import('../views/AdminView.vue'), meta: { title: '管理' } },
   { path: '/about', name: 'about', component: () => import('../views/AboutView.vue'), meta: { title: '关于' } },
+  { path: '/messages', name: 'messages', component: () => import('../views/MessageBoard.vue'), meta: { title: '留言' } },
 ]
 
 const router = createRouter({

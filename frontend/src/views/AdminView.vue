@@ -8,7 +8,7 @@ const authed = ref(false)
 const pwd = ref('')
 const err = ref('')
 const tab = ref('posts')
-const settings = ref({ motto: '', cfHandle: '', nowcoder: '', luogu: '', about: '', autoMusicId: '' })
+const settings = ref({ motto: '', cfHandle: '', atcoderHandle: '', nowcoder: '', luogu: '', about: '', autoMusicId: '' })
 
 // ---------- 通用反馈 ----------
 const toast = ref('')
@@ -359,6 +359,7 @@ async function loadSettings() {
     const cfg = await api.get('/site')
     settings.value.motto = cfg.motto || ''
     settings.value.cfHandle = cfg.cfHandle || ''
+    settings.value.atcoderHandle = cfg.atcoderHandle || ''
     settings.value.nowcoder = cfg.nowcoder || ''
     settings.value.luogu = cfg.luogu || ''
     settings.value.about = cfg.about || ''
@@ -371,6 +372,7 @@ async function saveSettings() {
     await api.put('/site', {
       motto: settings.value.motto,
       cfHandle: settings.value.cfHandle,
+      atcoderHandle: settings.value.atcoderHandle,
       nowcoder: settings.value.nowcoder,
       luogu: settings.value.luogu,
       about: settings.value.about,
@@ -382,6 +384,51 @@ async function saveSettings() {
   }
 }
 
+// ---------- 留言管理 ----------
+const adminMsgs = ref([])
+async function loadAdminMsgs() {
+  try { adminMsgs.value = await api.get('/messages') } catch {}
+}
+async function delAdminMsg(id) {
+  try {
+    await api.delete(`/messages/${id}`)
+    showToast('已删除')
+    loadAdminMsgs()
+  } catch (e) {
+    showToast(e.message === 'UNAUTHORIZED' ? '登录已过期，请重新登录' : '删除失败', true)
+  }
+}
+
+// ---------- 账号管理 ----------
+const adminUsers = ref([])
+const resetForm = ref({}) // userId -> password
+async function loadAdminUsers() {
+  try { adminUsers.value = await api.get('/user/admin/list') } catch {}
+}
+async function resetUserPwd(u) {
+  const pwd = (resetForm.value[u.id] || '').trim()
+  if (pwd.length < 6) {
+    showToast('新密码至少 6 位', true)
+    return
+  }
+  try {
+    await api.put(`/user/admin/${u.id}/password`, { password: pwd })
+    resetForm.value[u.id] = ''
+    showToast('已重置')
+  } catch (e) {
+    showToast(e.message === 'UNAUTHORIZED' ? '登录已过期，请重新登录' : '重置失败', true)
+  }
+}
+async function delUser(u) {
+  try {
+    await api.delete(`/user/admin/${u.id}`)
+    showToast('已删除账号')
+    loadAdminUsers()
+  } catch (e) {
+    showToast(e.message === 'UNAUTHORIZED' ? '登录已过期，请重新登录' : '删除失败', true)
+  }
+}
+
 function loadAll() {
   loadPosts()
   loadShuoshuo()
@@ -389,6 +436,8 @@ function loadAll() {
   loadPhotos()
   loadTechs()
   loadSettings()
+  loadAdminMsgs()
+  loadAdminUsers()
 }
 </script>
 
@@ -411,6 +460,8 @@ function loadAll() {
           <button :class="{ on: tab === 'photos' }" @click="tab = 'photos'">相册</button>
           <button :class="{ on: tab === 'music' }" @click="tab = 'music'">音乐</button>
           <button :class="{ on: tab === 'tech' }" @click="tab = 'tech'">技术栈</button>
+          <button :class="{ on: tab === 'messages' }" @click="tab = 'messages'">留言管理</button>
+          <button :class="{ on: tab === 'users' }" @click="tab = 'users'">账号管理</button>
           <button :class="{ on: tab === 'settings' }" @click="tab = 'settings'">网站设置</button>
           <a href="/" class="view">查看前台 →</a>
         </div>
@@ -585,6 +636,44 @@ function loadAll() {
         <p v-else class="hint">还没有节点，先添加一个大类吧</p>
       </section>
 
+      <!-- 留言管理 -->
+      <section v-if="tab === 'messages'" class="glass card">
+        <h2>留言管理</h2>
+        <p class="tip">共 {{ adminMsgs.length }} 条留言，违规可删除</p>
+      </section>
+      <section v-if="tab === 'messages'" class="list">
+        <div v-for="m in adminMsgs" :key="m.id" class="glass item shuo-item">
+          <div class="item-info">
+            <p class="msg-auth">{{ m.username }} · {{ m.createdAt }}</p>
+            <p class="msg-text">{{ m.content }}</p>
+          </div>
+          <div class="ops">
+            <button @click="askConfirm('删除留言', '确定删除这条留言吗？', () => delAdminMsg(m.id))">删除</button>
+          </div>
+        </div>
+        <p v-if="!adminMsgs.length" class="hint">还没有留言</p>
+      </section>
+
+      <!-- 账号管理 -->
+      <section v-if="tab === 'users'" class="glass card">
+        <h2>账号管理</h2>
+        <p class="tip">共 {{ adminUsers.length }} 个注册账号，可重置密码或删除（删除后其留言保留但昵称不变）</p>
+      </section>
+      <section v-if="tab === 'users'" class="list">
+        <div v-for="u in adminUsers" :key="u.id" class="glass item shuo-item">
+          <div class="item-info">
+            <p class="msg-auth">{{ u.username }}</p>
+            <p class="msg-text">{{ u.createdAt }}</p>
+          </div>
+          <div class="ops user-ops">
+            <input v-model="resetForm[u.id]" placeholder="新密码（≥6位）" class="mvsel wide" />
+            <button @click="resetUserPwd(u)">重置密码</button>
+            <button class="del" @click="askConfirm('删除账号', `确定删除账号「${u.username}」吗？`, () => delUser(u))">删除</button>
+          </div>
+        </div>
+        <p v-if="!adminUsers.length" class="hint">还没有注册账号</p>
+      </section>
+
       <!-- 网站设置 -->
       <section v-if="tab === 'settings'" class="glass card">
         <h2>网站设置</h2>
@@ -614,6 +703,10 @@ function loadAll() {
         <div class="set-row">
           <label class="lab">Codeforces Handle（自动拉取 Rating）</label>
           <input v-model="settings.cfHandle" placeholder="如 tourist" class="input" />
+        </div>
+        <div class="set-row">
+          <label class="lab">AtCoder Handle（跳转个人主页）</label>
+          <input v-model="settings.atcoderHandle" placeholder="如 ZHHHY_CN" class="input" />
         </div>
         <div class="set-row">
           <label class="lab">牛客主页链接（仅跳转用，不公开显示）</label>
@@ -912,6 +1005,19 @@ h1 { margin: 8px 0 24px; color: var(--text-h); }
   padding: 4px 14px;
   cursor: pointer;
 }
+.msg-auth { margin: 0 0 2px; color: var(--accent); font-size: 13px; font-weight: 600; }
+.msg-text { margin: 0; color: var(--text-h); white-space: pre-wrap; word-break: break-word; }
+.user-ops { gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.mvsel.wide { width: 150px; }
+.user-ops button {
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  background: transparent;
+  border-radius: 999px;
+  padding: 4px 14px;
+  cursor: pointer;
+}
+.user-ops button.del { border-color: rgba(239,68,68,.4); color: #ef4444; }
 
 .tech-head {
   display: flex;

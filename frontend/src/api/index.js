@@ -53,3 +53,48 @@ export async function upload(path, file, field = 'file', extra = {}) {
     clearTimeout(timer)
   }
 }
+
+// ---------- 留言用户系统（独立于 admin） ----------
+function userToken() {
+  return localStorage.getItem('user_token') || ''
+}
+
+async function uReq(path, options = {}, needAuth = false) {
+  const headers = { 'Content-Type': 'application/json' }
+  const t = userToken()
+  if (t) headers['X-User-Token'] = t
+  const res = await fetch(`${BASE}${path}`, { headers, ...options })
+  if (res.status === 401) {
+    if (needAuth) {
+      localStorage.removeItem('user_token')
+      localStorage.removeItem('user_name')
+    }
+    const err = new Error('UNAUTHORIZED')
+    err.status = 401
+    throw err
+  }
+  if (!res.ok) {
+    let msg = `请求失败: ${res.status}`
+    try {
+      const j = await res.json()
+      if (j && j.error) msg = j.error
+    } catch {}
+    const err = new Error(msg)
+    err.status = res.status
+    throw err
+  }
+  if (res.status === 204) return null
+  return res.json()
+}
+
+export const userApi = {
+  register: (username, password) => uReq('/user/register', { method: 'POST', body: JSON.stringify({ username, password }) }),
+  login: (username, password) => uReq('/user/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
+  logout: () => uReq('/user/logout', { method: 'POST' }),
+  me: () => uReq('/user/me'),
+  messages: () => uReq('/messages'),
+  postMessage: (content, username) =>
+    uReq('/messages', { method: 'POST', body: JSON.stringify({ content, username }) }, true),
+  deleteMessage: (id) =>
+    uReq(`/messages/${id}`, { method: 'DELETE' }, true),
+}

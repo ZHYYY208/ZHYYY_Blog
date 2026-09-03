@@ -13,8 +13,9 @@
 - **算法战绩**：后台填 CF handle 自动拉取 Codeforces Rating/段位（带段位色），可挂洛谷 / 牛客主页入口
 - **关于页**：自我介绍式大卡（头像 + 简介 + Markdown 正文）+ 最近动态，正文后台可编辑
 - **虚拟宠物**：右下角会敲代码的小猫（多排键帽 + 左右手随机敲击，随打字节奏同步）
-- **管理后台**：`/admin` 每次访问需登录，统一管理文章 / 说说 / 相册 / 音乐 / 技术栈 / 网站设置，删除带二次确认与 toast 反馈
-- 站点名称、首页简介(motto)、关于页正文等均可后台配置
+- **管理后台**：`/admin` 每次访问需登录，统一管理文章 / 说说 / 相册 / 音乐 / 技术栈 / 留言 / 账号 / 网站设置，删除带二次确认与 toast 反馈
+- **留言板**：访客注册登录后留言（纯文字），附留言须知/免责声明提示；站长可在后台删除留言、重置/删除注册账号
+- 站点名称、首页简介(motto)、关于页正文、算法战绩账号、自动播放曲目等均可后台配置
 
 ## 🧱 技术栈
 
@@ -91,6 +92,8 @@ npm run dev
 | 技术栈 | `GET/POST /api/tech` · `DELETE /api/tech/{id}` |
 | 上传 | `POST /api/upload`（`type=music/image`，文件存 `uploads/`） |
 | 站点配置 | `GET /api/site` · `PUT /api/site`（motto / 算法战绩 / 关于页正文等） |
+| 留言用户 | `POST /api/user/register` · `POST /api/user/login` · `GET /api/user/me` |
+| 留言板 | `GET/POST /api/messages` · `DELETE /api/messages/{id}`（站长） |
 | 运行时间 | `GET /api/uptime` |
 
 > 除 `GET` 外的写接口均在拦截器中校验请求头 `X-Admin-Token`；上传文件经 `/files/**` 静态访问。
