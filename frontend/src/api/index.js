@@ -39,11 +39,17 @@ export async function upload(path, file, field = 'file', extra = {}) {
   for (const [k, v] of Object.entries(extra)) fd.append(k, v)
   const headers = {}
   if (adminToken) headers['X-Admin-Token'] = adminToken
-  const res = await fetch(`${BASE}${path}`, { method: 'POST', headers, body: fd })
-  if (res.status === 401) {
-    clearAdminToken()
-    throw new Error('UNAUTHORIZED')
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(), 120000)
+  try {
+    const res = await fetch(`${BASE}${path}`, { method: 'POST', headers, body: fd, signal: ctrl.signal })
+    if (res.status === 401) {
+      clearAdminToken()
+      throw new Error('UNAUTHORIZED')
+    }
+    if (!res.ok) throw new Error(`上传失败: ${res.status}`)
+    return res.json()
+  } finally {
+    clearTimeout(timer)
   }
-  if (!res.ok) throw new Error(`上传失败: ${res.status}`)
-  return res.json()
 }

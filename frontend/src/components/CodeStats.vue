@@ -35,7 +35,10 @@ async function loadSite() {
 async function loadCF() {
   if (!cfg.value.cfHandle) return
   try {
-    const res = await fetch(`https://codeforces.com/api/user.info?handles=${encodeURIComponent(cfg.value.cfHandle)}`)
+    const res = await fetch(
+      `/api/cf/user?handle=${encodeURIComponent(cfg.value.cfHandle)}`,
+      { signal: AbortSignal.timeout(10000) }
+    )
     if (!res.ok) throw new Error()
     const j = await res.json()
     if (j.status === 'OK') {
@@ -48,6 +51,8 @@ async function loadCF() {
         u.rankColor = '#808080'
       }
       cf.value = u
+    } else {
+      throw new Error()
     }
   } catch {
     cfErr.value = true
@@ -56,8 +61,8 @@ async function loadCF() {
 
 onMounted(async () => {
   await loadSite()
-  await loadCF()
-  loaded.value = true
+  loaded.value = true // 卡片立即显示
+  loadCF()            // CF 数据异步填充，不阻塞首屏
 })
 
 function luoguUser() {

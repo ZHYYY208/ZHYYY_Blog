@@ -24,7 +24,6 @@ onMounted(() => {
     <div v-if="state.tracks.length" class="glass player">
       <div class="discwrap">
         <div class="disc" :class="{ spin: state.playing }" @click="toggle(state.index)"></div>
-        <span class="eq" :class="{ on: state.playing }"><i></i><i></i><i></i></span>
       </div>
 
       <div class="meta">
@@ -127,24 +126,6 @@ onMounted(() => {
 .disc.spin { animation: spin 8s linear infinite; }
 .discwrap:hover .disc { transform: scale(1.04); }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-.eq {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  height: 30px;
-  z-index: 2;
-  cursor: pointer;
-}
-.eq i { width: 4px; height: 6px; border-radius: 2px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
-.eq.on i { animation: eq 0.7s ease-in-out infinite; }
-.eq.on i:nth-child(2) { animation-delay: 0.15s; }
-.eq.on i:nth-child(3) { animation-delay: 0.3s; }
-@keyframes eq { 0%, 100% { height: 6px; } 50% { height: 24px; } }
 
 .meta { display: flex; flex-direction: column; gap: 4px; }
 .meta .tt { color: var(--text-h); font-size: 22px; }

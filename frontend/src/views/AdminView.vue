@@ -142,6 +142,7 @@ async function delShuo(id) {
 // ---------- 音乐 ----------
 const musics = ref([])
 const newTrack = ref({ title: '', artist: '', file: null })
+const musicUploading = ref(false)
 
 async function onMusicFile(e) {
   const file = e.target.files[0]
@@ -152,6 +153,7 @@ async function onMusicFile(e) {
 }
 
 async function addMusic() {
+  if (musicUploading.value) return
   if (!newTrack.value.file) {
     showToast('请先选择音频文件', true)
     return
@@ -160,6 +162,7 @@ async function addMusic() {
     showToast('请填写歌曲名', true)
     return
   }
+  musicUploading.value = true
   try {
     const up = await apiUpload('/upload', newTrack.value.file, 'file', { type: 'music' })
     await api.post('/music', { title: newTrack.value.title, artist: newTrack.value.artist, url: up.url })
@@ -169,6 +172,8 @@ async function addMusic() {
     loadMusic()
   } catch (e) {
     showToast(e.message === 'UNAUTHORIZED' ? '登录已过期，请重新登录' : '添加失败', true)
+  } finally {
+    musicUploading.value = false
   }
 }
 
@@ -485,7 +490,9 @@ function loadAll() {
           <input v-model="newTrack.artist" placeholder="歌手（可选）" class="input flex1" />
         </div>
         <div class="row">
-          <button class="primary" @click="addMusic">上传入库</button>
+          <button class="primary" @click="addMusic" :disabled="musicUploading">
+            {{ musicUploading ? '上传中…' : '上传入库' }}
+          </button>
         </div>
       </section>
 
@@ -675,6 +682,10 @@ h1 { margin: 8px 0 24px; color: var(--text-h); }
   padding: 9px 26px;
   font-weight: 600;
   cursor: pointer;
+}
+.primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .toolbar {
