@@ -128,7 +128,11 @@ onMounted(() => {
     </section>
 
     <!-- 留言列表 -->
-    <section class="list">
+    <div class="list-head">
+      <b>留言</b>
+      <span v-if="msgs.length" class="count">{{ msgs.length }} 条</span>
+    </div>
+    <section class="scroll">
       <div v-for="m in msgs" :key="m.id" class="glass msg">
         <div class="msg-head">
           <b>{{ m.username }}</b>
@@ -186,7 +190,21 @@ h1 { margin: 8px 0 6px; color: var(--text-h); }
 .agree { font-size: 13px; color: var(--text-muted); }
 .row { display: flex; justify-content: flex-end; }
 
-.list { display: flex; flex-direction: column; gap: 12px; }
+.list-head { display: flex; align-items: baseline; gap: 10px; margin: 4px 0 12px; }
+.list-head b { color: var(--text-h); font-size: 17px; }
+.list-head .count { color: var(--text-muted); font-size: 13px; }
+.scroll {
+  max-height: 60vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 4px;
+}
+.scroll::-webkit-scrollbar { width: 6px; }
+.scroll::-webkit-scrollbar-thumb { background: var(--accent-bg); border-radius: 999px; }
+.scroll::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 .msg { padding: 16px 20px; }
 .msg-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .msg-head b { color: var(--accent); }

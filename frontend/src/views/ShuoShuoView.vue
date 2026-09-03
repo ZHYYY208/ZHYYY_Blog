@@ -19,24 +19,29 @@ onMounted(load)
 
 <template>
   <div>
-    <h1>说说</h1>
+    <div class="head">
+      <h1>说说</h1>
+      <span class="count" v-if="items.length">{{ items.length }} 条</span>
+    </div>
     <p v-if="error" class="hint">{{ error }}</p>
 
-    <div v-for="it in items" :key="it.id" class="glass shuo">
-      <p>{{ it.content }}</p>
-      <div v-if="it.images && it.images.length" class="imgs">
-        <img
-          v-for="(img, i) in it.images"
-          :key="i"
-          :src="img"
-          alt=""
-          loading="lazy"
-          @click="viewer = img"
-        />
+    <div class="scroll">
+      <div v-for="it in items" :key="it.id" class="glass shuo">
+        <p>{{ it.content }}</p>
+        <div v-if="it.images && it.images.length" class="imgs">
+          <img
+            v-for="(img, i) in it.images"
+            :key="i"
+            :src="img"
+            alt=""
+            loading="lazy"
+            @click="viewer = img"
+          />
+        </div>
+        <span class="meta">{{ it.createdAt }}</span>
       </div>
-      <span class="meta">{{ it.createdAt }}</span>
+      <p v-if="!items.length && !error" class="hint">还没有说说</p>
     </div>
-    <p v-if="!items.length && !error" class="hint">还没有说说</p>
 
     <!-- 灯箱 -->
     <div v-if="viewer" class="mask" @click="viewer = null">
@@ -46,8 +51,21 @@ onMounted(load)
 </template>
 
 <style scoped>
-h1 { margin: 8px 0 24px; color: var(--text-h); }
-.shuo { padding: 20px 24px; margin-bottom: 14px; }
+.head { display: flex; align-items: baseline; gap: 12px; margin: 8px 0 16px; }
+.head h1 { margin: 0; color: var(--text-h); }
+.count { color: var(--text-muted); font-size: 13px; }
+
+.scroll {
+  max-height: 64vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+}
+.scroll::-webkit-scrollbar { width: 6px; }
+.scroll::-webkit-scrollbar-thumb { background: var(--accent-bg); border-radius: 999px; }
+.scroll::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+.shuo { padding: 18px 22px; margin-bottom: 14px; }
 .meta { color: var(--text-muted); font-size: 12px; }
 .shuo p { margin: 0 0 10px; white-space: pre-wrap; color: var(--text-h); }
 .imgs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
@@ -76,5 +94,9 @@ h1 { margin: 8px 0 24px; color: var(--text-h); }
   max-width: 92vw;
   max-height: 92vh;
   border-radius: 12px;
+}
+
+@media (max-width: 640px) {
+  .scroll { max-height: 56vh; }
 }
 </style>
