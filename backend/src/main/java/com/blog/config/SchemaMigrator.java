@@ -30,6 +30,12 @@ public class SchemaMigrator implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         try {
+            // 低内存低 IO 环境：WAL + NORMAL 同步，显著减少写盘 fsync
+            try {
+                jdbc.queryForObject("PRAGMA journal_mode=WAL", String.class);
+                jdbc.execute("PRAGMA synchronous=NORMAL");
+            } catch (Exception ignored) {}
+
             if (!hasColumn("shuoshuo", "images")) {
                 jdbc.execute("ALTER TABLE shuoshuo ADD COLUMN images TEXT NOT NULL DEFAULT '[]'");
             }
