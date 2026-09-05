@@ -1,6 +1,7 @@
 ﻿<script setup>
 import { computed, ref } from 'vue'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { api, upload as apiUpload, setAdminToken, clearAdminToken } from '../api'
 import TechBranch from '../components/TechBranch.vue'
 
@@ -62,7 +63,9 @@ function logout() {
 // ---------- 文章 ----------
 const posts = ref([])
 const post = ref({ title: '', summary: '', content: '' })
-const previewHtml = computed(() => marked.parse(post.value.content))
+const previewHtml = computed(() =>
+  post.value.content ? DOMPurify.sanitize(marked.parse(post.value.content)) : ''
+)
 
 async function loadPosts() {
   try { posts.value = await api.get('/posts') } catch {}

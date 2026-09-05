@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import { api } from '../api'
 import { BLOG } from '../config'
 
@@ -9,7 +10,9 @@ const about = ref('')
 const posts = ref([])
 const shuoshuo = ref([])
 
-const aboutHtml = computed(() => marked.parse(about.value || ''))
+const aboutHtml = computed(() =>
+  about.value ? DOMPurify.sanitize(marked.parse(about.value)) : ''
+)
 
 async function load() {
   try {

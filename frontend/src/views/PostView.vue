@@ -3,12 +3,15 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { api } from '../api'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 
 const route = useRoute()
 const post = ref(null)
 const error = ref('')
 
-const html = computed(() => (post.value ? marked.parse(post.value.content) : ''))
+const html = computed(() =>
+  post.value ? DOMPurify.sanitize(marked.parse(post.value.content)) : ''
+)
 
 onMounted(async () => {
   try {
