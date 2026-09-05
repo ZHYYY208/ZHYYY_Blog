@@ -473,6 +473,18 @@ async function copyInvite(code) {
   }
 }
 
+const showInviteModal = ref(false)
+function openInviteModal() {
+  showInviteModal.value = true
+  loadInvites()
+}
+function closeInviteModal() {
+  showInviteModal.value = false
+}
+async function genInvitesModal() {
+  await genInvites()
+}
+
 function loadAll() {
   loadPosts()
   loadShuoshuo()
@@ -510,7 +522,10 @@ function loadAll() {
           <button :class="{ on: tab === 'settings' }" @click="tab = 'settings'">网站设置</button>
           <a href="/" class="view">查看前台 →</a>
         </div>
-        <button class="logout" @click="logout">退出</button>
+        <div class="tb-actions">
+          <button class="invite-btn" @click="openInviteModal">＋ 邀请码</button>
+          <button class="logout" @click="logout">退出</button>
+        </div>
       </div>
 
       <!-- 文章管理 -->
@@ -793,6 +808,29 @@ function loadAll() {
         </div>
       </div>
 
+      <!-- 邀请码弹窗 -->
+      <div v-if="showInviteModal" class="mask" @click.self="closeInviteModal">
+        <div class="modal glass">
+          <h3>邀请码注册</h3>
+          <div class="inv-modal-row">
+            <input v-model.number="inviteCount" type="number" min="1" max="50" placeholder="数量" class="input flex1" />
+            <button class="primary" @click="genInvitesModal">生成</button>
+          </div>
+          <p class="tip">当前可用 <b>{{ inviteData.available }}</b> 个 · 一次性使用</p>
+          <div class="inv-grid" style="max-height:220px;overflow-y:auto">
+            <div v-for="c in inviteData.list" :key="c.id" class="inv-item" :class="{ used: c.used === 1 }">
+              <code>{{ c.code }}</code>
+              <span class="st">{{ c.used === 1 ? '已用' : '可用' }}</span>
+              <button v-if="c.used === 0" @click="copyInvite(c.code)">复制</button>
+            </div>
+            <p v-if="!inviteData.list.length" class="hint" style="width:100%;text-align:center">暂无邀请码</p>
+          </div>
+          <div class="modal-ops">
+            <button class="ghost" @click="closeInviteModal">关闭</button>
+          </div>
+        </div>
+      </div>
+
       <!-- 删除确认弹窗 -->
       <div v-if="confirmBox" class="mask" @click.self="cancelConfirm">
         <div class="modal glass">
@@ -866,6 +904,21 @@ h1 { margin: 8px 0 24px; color: var(--text-h); }
   border-radius: 999px;
   cursor: pointer;
 }
+.tb-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.invite-btn {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 7px 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+.invite-btn:hover { filter: brightness(1.08); }
+.inv-modal-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.inv-modal-row .flex1 { margin: 0; }
+.tip b { color: var(--accent); }
 
 .card { padding: 24px 26px; margin-bottom: 18px; }
 .card h2 { margin: 0 0 16px; color: var(--text-h); }
