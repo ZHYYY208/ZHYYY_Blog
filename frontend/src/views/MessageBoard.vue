@@ -5,7 +5,7 @@ import RulesCheck from '../components/RulesCheck.vue'
 
 const me = ref(null)
 const mode = ref('login') // login | register
-const form = ref({ username: '', password: '' })
+const form = ref({ username: '', password: '', inviteCode: '' })
 const err = ref('')
 const msgs = ref([])
 const content = ref('')
@@ -38,13 +38,17 @@ async function submit() {
     err.value = '用户名至少 2 位，密码至少 6 位'
     return
   }
+  if (mode.value === 'register' && !form.value.inviteCode.trim()) {
+    err.value = '注册需要邀请码，请向站长获取'
+    return
+  }
   try {
     const r = mode.value === 'login'
       ? await userApi.login(form.value.username, form.value.password)
-      : await userApi.register(form.value.username, form.value.password)
+      : await userApi.register(form.value.username, form.value.password, form.value.inviteCode.trim())
     setUserSession(r.token, r.username)
     me.value = { id: r.id, username: r.username, role: r.role || 'user' }
-    form.value = { username: '', password: '' }
+    form.value = { username: '', password: '', inviteCode: '' }
   } catch (e) {
     err.value = e.message
   }
@@ -107,6 +111,11 @@ onMounted(() => {
       <div class="field">
         <label>密码</label>
         <input v-model="form.password" type="password" placeholder="至少 6 位" @keyup.enter="submit" />
+      </div>
+      <div v-if="mode === 'register'" class="field">
+        <label>邀请码</label>
+        <input v-model="form.inviteCode" placeholder="向站长获取邀请码" @keyup.enter="submit" />
+        <p class="tip" style="margin-top:4px">注册需一次性邀请码</p>
       </div>
       <p v-if="err" class="err">{{ err }}</p>
       <button class="primary" @click="submit">{{ mode === 'login' ? '登录' : '注册并登录' }}</button>

@@ -42,6 +42,9 @@ public class SchemaMigrator implements ApplicationRunner {
             if (!hasColumn("users", "role")) {
                 jdbc.execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'");
             }
+            if (!hasColumn("users", "ip")) {
+                jdbc.execute("ALTER TABLE users ADD COLUMN ip TEXT NOT NULL DEFAULT ''");
+            }
             if (!hasColumn("messages", "role")) {
                 jdbc.execute("ALTER TABLE messages ADD COLUMN role TEXT NOT NULL DEFAULT 'user'");
             }

@@ -18,12 +18,18 @@ public class UserController {
 
     private final UserRepository repo;
     private final String adminToken;
+    private final boolean allowRegister;
+    private final com.blog.repository.InviteCodeRepository inviteRepo;
     private final Map<String, Long> sessions = new ConcurrentHashMap<>();
 
     public UserController(UserRepository repo,
-                          @org.springframework.beans.factory.annotation.Value("${blog.admin-token}") String adminToken) {
+                          @org.springframework.beans.factory.annotation.Value("${blog.admin-token}") String adminToken,
+                          @org.springframework.beans.factory.annotation.Value("${blog.allow-register:false}") boolean allowRegister,
+                          com.blog.repository.InviteCodeRepository inviteRepo) {
         this.repo = repo;
         this.adminToken = adminToken;
+        this.allowRegister = allowRegister;
+        this.inviteRepo = inviteRepo;
     }
 
     private boolean isAdmin(String tok) {
@@ -77,8 +83,18 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody Map<String, String> body) {
+    @DeleteMapping("/admin/clear-users")
+    public ResponseEntity<?> adminClearUsers(@RequestHeader(value = "X-Admin-Token", required = false) String tok) {
+        if (!isAdmin(tok)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        // 清理被机器人刷出的普通用户，保留 owner
+        repo.deleteNonOwner();
+        return ResponseEntity.ok(Map.of("ok", true));
+    }
+
+    @PostMapping("/admin/create")
+    public ResponseEntity<?> adminCreate(@RequestHeader(value = "X-Admin-Token", required = false) String tok,
+                                         @RequestBody Map<String, String> body) {
+        if (!isAdmin(tok)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         String username = body.getOrDefault("username", "").trim();
         String password = body.getOrDefault("password", "");
         if (username.length() < 2 || username.length() > 20) {
@@ -93,10 +109,53 @@ public class UserController {
         User u = new User();
         u.setUsername(username);
         u.setPassHash(PasswordUtil.hash(password));
+        u.setRole("user");
+        u.setIp("admin-created");
+        u.setCreatedAt(TimeUtil.now());
+        repo.save(u);
+        return ResponseEntity.ok(Map.of("id", u.getId(), "username", u.getUsername()));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody Map<String, String> body,
+                                      jakarta.servlet.http.HttpServletRequest req) {
+        String code = body.getOrDefault("inviteCode", "").trim();
+        String username = body.getOrDefault("username", "").trim();
+        String password = body.getOrDefault("password", "");
+        if (username.length() < 2 || username.length() > 20) {
+            return ResponseEntity.badRequest().body(Map.of("error", "用户名长度需 2-20 位"));
+        }
+        if (password.length() < 6) {
+            return ResponseEntity.badRequest().body(Map.of("error", "密码至少 6 位"));
+        }
+        if (repo.findByUsername(username) != null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "用户名已存在"));
+        }
+        // 邀请码注册：一个码只能用一次
+        if (code.isEmpty() || !inviteRepo.consume(code, TimeUtil.now())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "邀请码无效或已被使用，请联系站长"));
+        }
+        User u = new User();
+        u.setUsername(username);
+        u.setPassHash(PasswordUtil.hash(password));
+        u.setRole("user");
+        u.setIp(clientIp(req));
         u.setCreatedAt(TimeUtil.now());
         repo.save(u);
         String token = newSession(u.getId());
         return ResponseEntity.ok(publicUser(u, token));
+    }
+
+    private String clientIp(jakarta.servlet.http.HttpServletRequest req) {
+        String xff = req.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.isBlank()) {
+            return xff.split(",")[0].trim();
+        }
+        String xr = req.getHeader("X-Real-IP");
+        if (xr != null && !xr.isBlank()) {
+            return xr.trim();
+        }
+        return req.getRemoteAddr();
     }
 
     @PostMapping("/login")

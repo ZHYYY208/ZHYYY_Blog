@@ -430,6 +430,49 @@ async function delUser(u) {
   }
 }
 
+const newUserForm = ref({ username: '', password: '' })
+async function createUser() {
+  const name = newUserForm.value.username.trim()
+  const pwd = newUserForm.value.password
+  if (name.length < 2 || pwd.length < 6) {
+    showToast('用户名≥2位，密码≥6位', true)
+    return
+  }
+  try {
+    await api.post('/user/admin/create', { username: name, password: pwd })
+    newUserForm.value = { username: '', password: '' }
+    showToast('账号已创建')
+    loadAdminUsers()
+  } catch (e) {
+    showToast(e.message === 'UNAUTHORIZED' ? '登录已过期，请重新登录' : (e.message.includes('已存在') ? e.message : '创建失败'), true)
+  }
+}
+
+// ---------- 邀请码 ----------
+const inviteData = ref({ list: [], available: 0 })
+const inviteCount = ref(1)
+async function loadInvites() {
+  try { inviteData.value = await api.get('/invite/list') } catch {}
+}
+async function genInvites() {
+  try {
+    const n = Math.max(1, Math.min(50, Number(inviteCount.value) || 1))
+    const r = await api.post('/invite/generate', { count: n })
+    showToast(`已生成 ${r.codes.length} 个邀请码`)
+    loadInvites()
+  } catch (e) {
+    showToast(e.message === 'UNAUTHORIZED' ? '登录已过期，请重新登录' : '生成失败', true)
+  }
+}
+async function copyInvite(code) {
+  try {
+    await navigator.clipboard.writeText(code)
+    showToast('已复制')
+  } catch {
+    showToast('复制失败，请手动复制', true)
+  }
+}
+
 function loadAll() {
   loadPosts()
   loadShuoshuo()
@@ -439,6 +482,7 @@ function loadAll() {
   loadSettings()
   loadAdminMsgs()
   loadAdminUsers()
+  loadInvites()
 }
 </script>
 
@@ -658,7 +702,24 @@ function loadAll() {
       <!-- 账号管理 -->
       <section v-if="tab === 'users'" class="glass card">
         <h2>账号管理</h2>
-        <p class="tip">共 {{ adminUsers.length }} 个注册账号，可重置密码或删除（删除后其留言保留但昵称不变）</p>
+        <div class="up-row">
+          <input v-model="newUserForm.username" placeholder="新用户名" class="input flex1" />
+          <input v-model="newUserForm.password" placeholder="密码（≥6位）" type="password" class="input flex1" />
+          <button class="primary" @click="createUser">＋ 创建账号</button>
+        </div>
+        <h3 class="sub-h">邀请码注册</h3>
+        <div class="up-row">
+          <input v-model.number="inviteCount" type="number" min="1" max="50" placeholder="数量" class="input sel" />
+          <button class="primary" @click="genInvites">＋ 生成邀请码</button>
+        </div>
+        <p class="tip">游客注册需一次性邀请码（每码只能用一个）。当前可用 {{ inviteData.available }} 个。</p>
+        <div class="inv-grid" v-if="inviteData.list.length">
+          <div v-for="c in inviteData.list" :key="c.id" class="inv-item" :class="{ used: c.used === 1 }">
+            <code>{{ c.code }}</code>
+            <span class="st">{{ c.used === 1 ? '已用' : '可用' }}</span>
+            <button v-if="c.used === 0" @click="copyInvite(c.code)">复制</button>
+          </div>
+        </div>
       </section>
       <section v-if="tab === 'users'" class="list">
         <div v-for="u in adminUsers" :key="u.id" class="glass item shuo-item">
@@ -1015,6 +1076,30 @@ h1 { margin: 8px 0 24px; color: var(--text-h); }
   cursor: pointer;
 }
 .user-ops button.del { border-color: rgba(239,68,68,.4); color: #ef4444; }
+
+.inv-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.inv-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  background: rgba(255,255,255,.4);
+}
+.inv-item code { color: var(--text-h); font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+.inv-item .st { font-size: 11px; color: #16a34a; }
+.inv-item.used { opacity: 0.55; }
+.inv-item.used .st { color: var(--text-muted); }
+.inv-item button {
+  border: none;
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 1px 10px;
+  cursor: pointer;
+  font-size: 11px;
+}
 
 .tech-head {
   display: flex;

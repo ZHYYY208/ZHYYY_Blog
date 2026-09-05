@@ -116,7 +116,8 @@ async function uReq(path, options = {}, needAuth = false) {
 }
 
 export const userApi = {
-  register: (username, password) => uReq('/user/register', { method: 'POST', body: JSON.stringify({ username, password }) }),
+  register: (username, password, inviteCode) =>
+    uReq('/user/register', { method: 'POST', body: JSON.stringify({ username, password, inviteCode: inviteCode || '' }) }),
   login: (username, password) => uReq('/user/login', { method: 'POST', body: JSON.stringify({ username, password }) }),
   logout: () => uReq('/user/logout', { method: 'POST' }),
   me: () => uReq('/user/me'),

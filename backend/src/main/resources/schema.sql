@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS users (
     username   TEXT NOT NULL UNIQUE,
     pass_hash  TEXT NOT NULL,
     role       TEXT NOT NULL DEFAULT 'user',
+    ip         TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL
 );
 
@@ -63,5 +64,13 @@ CREATE TABLE IF NOT EXISTS messages (
     role       TEXT NOT NULL DEFAULT 'user',
     content    TEXT NOT NULL,
     created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS invite_codes (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    code       TEXT NOT NULL UNIQUE,
+    used       INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    used_at    TEXT
 );
 

@@ -5,15 +5,17 @@ public class User {
     private String username;
     private String passHash;
     private String role;
+    private String ip;
     private String createdAt;
 
     public User() {}
 
-    public User(Long id, String username, String passHash, String role, String createdAt) {
+    public User(Long id, String username, String passHash, String role, String ip, String createdAt) {
         this.id = id;
         this.username = username;
         this.passHash = passHash;
         this.role = role;
+        this.ip = ip;
         this.createdAt = createdAt;
     }
 
@@ -25,6 +27,8 @@ public class User {
     public void setPassHash(String passHash) { this.passHash = passHash; }
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+    public String getIp() { return ip; }
+    public void setIp(String ip) { this.ip = ip; }
     public String getCreatedAt() { return createdAt; }
     public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
 }
